@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GM Training">
+<meta name="theme-color" content="#0a0a0a">
+<title>GM Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f3ee;
+    --red: #c8382a;
+    --grey: #6b6b6b;
+    --card: #111111;
+    --border: #1e1e1e;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+  }
+
+  /* APP SHELL */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    height: 100dvh;
+  }
+
+  /* HEADER */
+  .app-header {
+    padding: calc(var(--safe-top) + 16px) 20px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--black);
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .app-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .app-title span { color: var(--red); }
+
+  .header-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-top: 3px;
+  }
+
+  .today-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    color: var(--grey);
+  }
+
+  .today-badge.active-day {
+    background: #1a0e0e;
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* SCROLLABLE CONTENT */
+  .app-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* BOTTOM NAV */
+  .app-nav {
+    display: flex;
+    border-top: 1px solid var(--border);
+    background: var(--black);
+    padding-bottom: var(--safe-bottom);
+    flex-shrink: 0;
+  }
+
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 4px;
+    background: none;
+    border: none;
+    color: var(--grey);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    gap: 4px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .nav-btn.active { color: var(--red); }
+
+  .nav-icon { font-size: 20px; line-height: 1; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* WEEK VIEW */
+  .week-grid {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .day-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .day-card.training { border-left: 3px solid var(--red); }
+  .day-card.football { border-left: 3px solid #4caf50; }
+  .day-card.rest { border-left: 3px solid #333; }
+  .day-card.mobility { border-left: 3px solid #cc9944; }
+  .day-card.today { box-shadow: 0 0 0 1px var(--red); }
+
+  .day-card-inner {
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .day-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 90px;
+  }
+
+  .day-info { flex: 1; }
+
+  .day-type-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 3px;
+  }
+
+  .day-desc {
+    font-size: 13px;
+    color: #bbb;
+    line-height: 1.4;
+  }
+
+  .day-arrow {
+    color: var(--grey);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* SECTION INSIDE PANEL */
+  .section-pad { padding: 20px 16px; }
+
+  .s-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+
+  .s-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+
+  .s-desc {
+    font-size: 14px;
+    color: #888;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  /* EXERCISE CARDS */
+  .ex-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+
+  .ex-block-header {
+    padding: 14px 18px;
+    background: #161616;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .ex-block-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .ex-block-meta {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+
+  .exercise-item {
+    border-bottom: 1px solid #161616;
+    cursor: pointer;
+  }
+
+  .exercise-item:last-child { border-bottom: none; }
+
+  .ex-summary {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ex-illus {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    background: #1a1a1a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ex-illus svg { width: 44px; height: 44px; }
+
+  .ex-info { flex: 1; min-width: 0; }
+
+  .ex-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 3px;
+    line-height: 1.3;
+  }
+
+  .ex-stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .ex-stat {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+  }
+
+  .ex-stat strong {
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  .ex-chevron {
+    color: var(--grey);
+    font-size: 16px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .ex-chevron.open { transform: rotate(90deg); }
+
+  /* EXERCISE DETAIL */
+  .ex-detail {
+    display: none;
+    padding: 0 18px 16px;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .ex-detail.open { display: block; }
+
+  .ex-detail-illus {
+    width: 100%;
+    height: 140px;
+    background: #141414;
+    border-radius: 8px;
+    margin: 14px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .ex-detail-illus svg { width: 100%; height: 100%; }
+
+  .ex-weight-box {
+    background: #1a0e0e;
+    border: 1px solid #3d1a1a;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+
+  .ex-weight-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+
+  .ex-weight-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .ex-weight-sub {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .ex-tip {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .ex-tip strong { color: #aaa; }
+
+  .ex-cue {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .ex-cue-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .ex-cue span { font-size: 13px; color: #777; line-height: 1.5; }
+
+  /* ALERT */
+  .alert {
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+
+  .alert-warn {
+    background: #1a0e0e;
+    border: 1px solid #3d1a1a;
+    border-left: 3px solid var(--red);
+  }
+
+  .alert-ok {
+    background: #0e1a0e;
+    border: 1px solid #1a3d1a;
+    border-left: 3px solid #4caf50;
+  }
+
+  .alert-neutral {
+    background: #141414;
+    border: 1px solid var(--border);
+    border-left: 3px solid #444;
+  }
+
+  .alert h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .alert-warn h4 { color: var(--red); }
+  .alert-ok h4 { color: #4caf50; }
+  .alert-neutral h4 { color: #888; }
+  .alert p { font-size: 13px; line-height: 1.6; color: #888; }
+
+  /* STATS GRID */
+  .stats-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .stat-mini-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+
+  .stat-mini-n {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--white);
+  }
+
+  .stat-mini-l {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* NUTRITION */
+  .meal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .meal-header {
+    padding: 14px 18px;
+    background: #161616;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .meal-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .meal-kcal {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+
+  .food-row {
+    padding: 11px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #161616;
+    font-size: 13px;
+  }
+
+  .food-row:last-child { border-bottom: none; }
+  .food-qty { color: var(--grey); font-size: 12px; }
+
+  /* PERCORSO */
+  .timeline { padding: 16px; }
+
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 28px;
+    position: relative;
+  }
+
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 32px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .tl-item:last-child::before { display: none; }
+
+  .tl-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tl-item.current .tl-dot {
+    border-color: var(--red);
+    background: #1a0e0e;
+  }
+
+  .tl-body { padding-top: 8px; }
+
+  .tl-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 4px;
+  }
+
+  .tl-item:not(.current) .tl-label { color: var(--grey); }
+
+  .tl-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .tl-desc { font-size: 13px; color: #777; line-height: 1.6; }
+
+  /* BACK BUTTON */
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 16px 0;
+    background: none;
+    border: none;
+    color: var(--red);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  .pb-safe { height: calc(16px + var(--safe-bottom)); }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="header-row">
+      <div>
+        <div class="app-title">GM <span>Training</span></div>
+        <div class="header-sub">Piano Atletico Personalizzato</div>
+      </div>
+      <div class="today-badge" id="todayBadge">—</div>
+    </div>
+  </header>
+
+  <div class="app-content" id="appContent">
+
+    <!-- PANEL: SETTIMANA -->
+    <div class="panel active" id="panel-week">
+      <div class="week-grid">
+        <div class="day-card rest" onclick="openDay('lun')">
+          <div class="day-card-inner">
+            <div class="day-name">Lunedì</div>
+            <div class="day-info">
+              <div class="day-type-label">Recupero post-gara</div>
+              <div class="day-desc">Riposo — dolori normali dopo la domenica</div>
+            </div>
+            <div class="day-arrow">—</div>
+          </div>
+        </div>
+        <div class="day-card training" onclick="openDay('mar')">
+          <div class="day-card-inner">
+            <div class="day-name">Martedì</div>
+            <div class="day-info">
+              <div class="day-type-label">💪 Forza A</div>
+              <div class="day-desc">Upper Push — Petto / Spalle / Tricipiti</div>
+            </div>
+            <div class="day-arrow">›</div>
+          </div>
+        </div>
+        <div class="day-card mobility" onclick="openDay('mer')">
+          <div class="day-card-inner">
+            <div class="day-name">Mercoledì</div>
+            <div class="day-info">
+              <div class="day-type-label">🧘 Mobilità</div>
+              <div class="day-desc">Hip mobility + stretching posturale (25 min)</div>
+            </div>
+            <div class="day-arrow">›</div>
+          </div>
+        </div>
+        <div class="day-card training" onclick="openDay('gio')">
+          <div class="day-card-inner">
+            <div class="day-name">Giovedì</div>
+            <div class="day-info">
+              <div class="day-type-label">💪 Forza B</div>
+              <div class="day-desc">Lower Funzionale — Gambe Calcistiche</div>
+            </div>
+            <div class="day-arrow">›</div>
+          </div>
+        </div>
+        <div class="day-card training" onclick="openDay('ven')">
+          <div class="day-card-inner">
+            <div class="day-name">Venerdì</div>
+            <div class="day-info">
+              <div class="day-type-label">💪 Forza C</div>
+              <div class="day-desc">Upper Pull — Schiena / Bicipiti</div>
+            </div>
+            <div class="day-arrow">›</div>
+          </div>
+        </div>
+        <div class="day-card rest" onclick="openDay('sab')">
+          <div class="day-card-inner">
+            <div class="day-name">Sabato</div>
+            <div class="day-info">
+              <div class="day-type-label">Pre-gara</div>
+              <div class="day-desc">Riposo obbligatorio — gambe fresche</div>
+            </div>
+            <div class="day-arrow">›</div>
+          </div>
+        </div>
+        <div class="day-card football" onclick="openDay('dom')">
+          <div class="day-card-inner">
+            <div class="day-name">Domenica</div>
+            <div class="day-info">
+              <div class="day-type-label">⚽ Calcio</div>
+              <div class="day-desc">Torneo calcio a 8 — cardio naturale</div>
+            </div>
+            <div class="day-arrow">›</div>
+          </div>
+        </div>
+        <div class="pb-safe"></div>
+      </div>
+    </div>
+
+    <!-- PANEL: DAY DETAIL -->
+    <div class="panel" id="panel-day">
+      <div id="day-content"></div>
+    </div>
+
+    <!-- PANEL: ALIMENTAZIONE -->
+    <div class="panel" id="panel-food">
+      <div class="section-pad">
+        <div class="s-label">Alimentazione</div>
+        <div class="s-title">Il tuo piano</div>
+        <div class="s-desc">La dieta della Dr.ssa Sangiorgio è buona. Queste ottimizzazioni la completano per il lavoro atletico.</div>
+
+        <div class="stats-mini">
+          <div class="stat-mini-box">
+            <div class="stat-mini-n">1800</div>
+            <div class="stat-mini-l">Kcal base</div>
+          </div>
+          <div class="stat-mini-box">
+            <div class="stat-mini-n">2000</div>
+            <div class="stat-mini-l">Kcal palestra</div>
+          </div>
+          <div class="stat-mini-box">
+            <div class="stat-mini-n">2,5L</div>
+            <div class="stat-mini-l">Acqua giornate WO</div>
+          </div>
+        </div>
+
+        <div class="alert alert-ok">
+          <h4>✓ Cosa funziona già</h4>
+          <p>Proteine presenti e variate (tonno, pollo, uova, salmone). Calorie bilanciate. Varietà alimentare alta. Non stravolgere — ottimizza.</p>
+        </div>
+
+        <div class="alert alert-warn">
+          <h4>⚠ Giorni di palestra</h4>
+          <p>Aggiungi 1 fonte proteica a colazione (2 uova o 30g formaggio magro). Porta le kcal a ~2000. Entro 45 min dal workout: frutta + proteina.</p>
+        </div>
+
+        <hr>
+        <div class="s-label" style="margin-bottom:12px">Domenica — Match Day</div>
+
+        <div class="meal-card">
+          <div class="meal-header">
+            <span class="meal-name">☀️ Colazione</span>
+            <span class="meal-kcal">Come da dieta</span>
+          </div>
+          <div class="food-row"><span>Latte parz. scremato</span><span class="food-qty">200g</span></div>
+          <div class="food-row"><span>Corn flakes</span><span class="food-qty">50g</span></div>
+          <div class="food-row"><span>Barretta cereali</span><span class="food-qty">25g</span></div>
+        </div>
+
+        <div class="meal-card">
+          <div class="meal-header">
+            <span class="meal-name">🍝 Pranzo Pre-gara</span>
+            <span class="meal-kcal">3h prima</span>
+          </div>
+          <div class="food-row"><span>Pasta o riso</span><span class="food-qty">80g</span></div>
+          <div class="food-row"><span>Pollo o tonno</span><span class="food-qty">120g</span></div>
+          <div class="food-row"><span>Verdura leggera</span><span class="food-qty">q.b.</span></div>
+          <div class="food-row"><span>Olio EVO</span><span class="food-qty">8g</span></div>
+        </div>
+
+        <div class="meal-card">
+          <div class="meal-header">
+            <span class="meal-name">🍌 Spuntino</span>
+            <span class="meal-kcal">60 min prima</span>
+          </div>
+          <div class="food-row"><span>Banana o frutta della dieta</span><span class="food-qty">150g</span></div>
+        </div>
+
+        <div class="meal-card">
+          <div class="meal-header">
+            <span class="meal-name">🏃 Durante</span>
+            <span class="meal-kcal">Partita</span>
+          </div>
+          <div class="food-row"><span>Acqua ogni 15 min</span><span class="food-qty">200ml</span></div>
+        </div>
+
+        <hr>
+        <div class="s-label" style="margin-bottom:12px">Integratori essenziali</div>
+
+        <div class="ex-block">
+          <div class="food-row"><span><strong>Creatina monoidrata</strong></span><span class="food-qty">5g/die</span></div>
+          <div class="food-row"><span>Il più studiato. Forza + recupero</span><span class="food-qty">~€15/mese</span></div>
+        </div>
+
+        <div class="ex-block">
+          <div class="food-row"><span><strong>Vitamina D3</strong></span><span class="food-qty">2000 UI</span></div>
+          <div class="food-row"><span>Autunno/inverno — energia e forza</span><span class="food-qty">mattina</span></div>
+        </div>
+
+        <div class="ex-block">
+          <div class="food-row"><span><strong>Magnesio glicinato</strong></span><span class="food-qty">300mg</span></div>
+          <div class="food-row"><span>Recovery notturno, meno crampi</span><span class="food-qty">sera</span></div>
+        </div>
+
+        <div class="pb-safe"></div>
+      </div>
+    </div>
+
+    <!-- PANEL: PERCORSO -->
+    <div class="panel" id="panel-path">
+      <div class="section-pad">
+        <div class="s-label">Roadmap</div>
+        <div class="s-title">12 Settimane</div>
+        <div class="s-desc">Tre fasi progressive. La costanza batte sempre l'intensità.</div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item current">
+          <div class="tl-dot">🔴</div>
+          <div class="tl-body">
+            <div class="tl-label">📍 Settimane 1–4 — Ora</div>
+            <div class="tl-title">Foundation</div>
+            <div class="tl-desc">Impara i movimenti con forma corretta. Carichi leggeri, tecnica perfetta. Inizia la mobilità del mercoledì — risolve già il 50% dei dolori. Obiettivo: 3 sessioni settimanali consecutive per 4 settimane senza saltare.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">⚡</div>
+          <div class="tl-body">
+            <div class="tl-label">Settimane 5–8</div>
+            <div class="tl-title">Intensification</div>
+            <div class="tl-desc">+1 serie per esercizio principale. Pesi +10%. Introduci supersets. Risultati visibili iniziano qui: addome più piatto, spalle definite.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">🔥</div>
+          <div class="tl-body">
+            <div class="tl-label">Settimane 9–12</div>
+            <div class="tl-title">Definition</div>
+            <div class="tl-desc">Recuperi brevi (45"). Circuiti finali ad alta intensità. Performance calcistica visibilmente migliorata: più fiato, gambe fresche, più reattività.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">🎯</div>
+          <div class="tl-body">
+            <div class="tl-label">Settimana 13+</div>
+            <div class="tl-title">Il nuovo normale</div>
+            <div class="tl-desc">Hai un sistema che ti appartiene. Si aggiusta, non si reinventa. Valutazione risultati e nuovi obiettivi.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-pad" style="padding-top:0">
+        <hr>
+        <div class="s-label" style="margin-bottom:12px">Regole mentali</div>
+
+        <div class="alert alert-ok">
+          <h4>La regola del "basta presentarsi"</h4>
+          <p>Nei giorni senza voglia: vai con l'obiettivo di fare solo il riscaldamento. Il 95% delle volte finirai l'allenamento. Il problema non è la palestra — è il divano prima.</p>
+        </div>
+
+        <div class="alert alert-ok">
+          <h4>La regola del 2%</h4>
+          <p>Ogni settimana migliora del 2% su una sola cosa. Un peso, un rep, un secondo di plank. Il 2% composto fa miracoli in 12 settimane.</p>
+        </div>
+
+        <div class="alert alert-warn">
+          <h4>Non fare mai queste cose</h4>
+          <p>Non cambiare scheda ogni 2 settimane. Non aggiungere esercizi random da Instagram. Non saltare la mobilità del mercoledì. Non pesarti ogni giorno.</p>
+        </div>
+      </div>
+
+      <div class="pb-safe"></div>
+    </div>
+
+  </div>
+
+  <nav class="app-nav">
+    <button class="nav-btn active" onclick="showPanel('week', this)">
+      <span class="nav-icon">📅</span>
+      Settimana
+    </button>
+    <button class="nav-btn" onclick="showPanel('food', this)">
+      <span class="nav-icon">🥗</span>
+      Dieta
+    </button>
+    <button class="nav-btn" onclick="showPanel('path', this)">
+      <span class="nav-icon">🎯</span>
+      Percorso
+    </button>
+  </nav>
+
+</div>
+
+<script>
+
+// SVG ILLUSTRATIONS
+const illustrations = {
+  panca: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bench -->
+    <rect x="60" y="75" width="80" height="10" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="70" y="85" width="8" height="20" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="122" y="85" width="8" height="20" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Bar -->
+    <rect x="30" y="55" width="140" height="6" rx="3" fill="#555" stroke="#777" stroke-width="1"/>
+    <!-- Weights -->
+    <rect x="22" y="48" width="14" height="20" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <rect x="164" y="48" width="14" height="20" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <!-- Figure lying -->
+    <ellipse cx="100" cy="68" rx="20" ry="8" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Arms up -->
+    <line x1="88" y1="68" x2="55" y2="58" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <line x1="112" y1="68" x2="145" y2="58" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Head -->
+    <circle cx="100" cy="60" r="8" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <text x="100" y="110" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">PANCA PIANA</text>
+  </svg>`,
+
+  military: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figure standing -->
+    <circle cx="100" cy="35" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="88" y="45" width="24" height="35" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Legs -->
+    <rect x="88" y="78" width="10" height="28" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="102" y="78" width="10" height="28" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Arms up with bar -->
+    <line x1="88" y1="55" x2="55" y2="42" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <line x1="112" y1="55" x2="145" y2="42" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <rect x="40" y="35" width="120" height="8" rx="3" fill="#666" stroke="#888" stroke-width="1"/>
+    <rect x="32" y="30" width="12" height="18" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <rect x="156" y="30" width="12" height="18" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <text x="100" y="118" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">MILITARY PRESS</text>
+  </svg>`,
+
+  croci: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="60" y="72" width="80" height="10" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="70" y="82" width="8" height="18" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="122" y="82" width="8" height="18" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <ellipse cx="100" cy="65" rx="20" ry="8" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Arms wide open -->
+    <line x1="82" y1="65" x2="38" y2="60" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <line x1="118" y1="65" x2="162" y2="60" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Dumbbells -->
+    <circle cx="34" cy="60" r="6" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <circle cx="166" cy="60" r="6" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <circle cx="100" cy="57" r="8" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Arrows showing arc motion -->
+    <path d="M42 55 Q60 45 78 62" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <path d="M158 55 Q140 45 122 62" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <text x="100" y="110" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">CROCI MANUBRI</text>
+  </svg>`,
+
+  lateral: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="35" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="88" y="45" width="24" height="35" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="88" y="78" width="10" height="28" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="102" y="78" width="10" height="28" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Arms out to sides -->
+    <line x1="88" y1="58" x2="48" y2="48" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <line x1="112" y1="58" x2="152" y2="48" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="44" cy="47" r="6" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <circle cx="156" cy="47" r="6" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <!-- Arc arrows -->
+    <path d="M90 72 Q68 65 52 50" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <path d="M110 72 Q132 65 148 50" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <text x="100" y="118" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">LATERAL RAISE</text>
+  </svg>`,
+
+  dip: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Parallel bars -->
+    <rect x="55" y="50" width="6" height="50" rx="3" fill="#444" stroke="#666" stroke-width="1"/>
+    <rect x="139" y="50" width="6" height="50" rx="3" fill="#444" stroke="#666" stroke-width="1"/>
+    <rect x="42" y="50" width="32" height="6" rx="3" fill="#555" stroke="#777" stroke-width="1"/>
+    <rect x="126" y="50" width="32" height="6" rx="3" fill="#555" stroke="#777" stroke-width="1"/>
+    <!-- Figure -->
+    <circle cx="100" cy="38" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="88" y="48" width="24" height="30" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <line x1="88" y1="60" x2="61" y2="52" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <line x1="112" y1="60" x2="139" y2="52" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Legs hanging -->
+    <line x1="92" y1="78" x2="88" y2="105" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="108" y1="78" x2="112" y2="105" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/>
+    <text x="100" y="120" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">DIP PARALLELE</text>
+  </svg>`,
+
+  plank: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Floor -->
+    <rect x="20" y="95" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Body horizontal -->
+    <rect x="40" y="80" width="110" height="16" rx="6" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Head -->
+    <circle cx="155" cy="78" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Arms (forearms on ground) -->
+    <rect x="48" y="92" width="16" height="5" rx="2" fill="#444"/>
+    <rect x="80" y="92" width="16" height="5" rx="2" fill="#444"/>
+    <!-- Toes -->
+    <rect x="38" y="92" width="10" height="5" rx="2" fill="#444"/>
+    <!-- Core arrow -->
+    <path d="M80 75 L80 68" stroke="#c8382a" stroke-width="2" marker-end="url(#arr)"/>
+    <path d="M120 75 L120 68" stroke="#c8382a" stroke-width="2"/>
+    <path d="M80 68 L120 68" stroke="#c8382a" stroke-width="2" stroke-dasharray="3,2"/>
+    <text x="100" y="110" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">PLANK — CORE STABILE</text>
+  </svg>`,
+
+  rdl: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Floor -->
+    <rect x="20" y="115" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Hinge position -->
+    <circle cx="130" cy="45" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Torso bent forward -->
+    <line x1="130" y1="55" x2="80" y2="75" stroke="#3a3a3a" stroke-width="12" stroke-linecap="round"/>
+    <!-- Legs -->
+    <line x1="130" y1="65" x2="126" y2="115" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/>
+    <line x1="130" y1="65" x2="138" y2="115" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/>
+    <!-- Bar hanging -->
+    <rect x="58" y="72" width="60" height="6" rx="3" fill="#666" stroke="#888" stroke-width="1"/>
+    <rect x="50" y="68" width="12" height="14" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <rect x="114" y="68" width="12" height="14" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <!-- Hip hinge arrow -->
+    <path d="M130 60 Q145 60 148 70" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <text x="100" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">ROMANIAN DEADLIFT</text>
+  </svg>`,
+
+  bulgariansplit: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bench behind -->
+    <rect x="120" y="80" width="55" height="10" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="126" y="90" width="8" height="15" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="161" y="90" width="8" height="15" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Floor -->
+    <rect x="20" y="115" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Figure -->
+    <circle cx="90" cy="30" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="78" y="40" width="24" height="30" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Front leg (lunging) -->
+    <line x1="82" y1="68" x2="68" y2="115" stroke="#2a2a2a" stroke-width="11" stroke-linecap="round"/>
+    <!-- Back leg (on bench) -->
+    <line x1="98" y1="68" x2="130" y2="82" stroke="#2a2a2a" stroke-width="11" stroke-linecap="round"/>
+    <!-- Dumbbells at sides -->
+    <rect x="58" y="58" width="10" height="18" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <rect x="112" y="58" width="10" height="18" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <text x="95" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">BULGARIAN SPLIT SQUAT</text>
+  </svg>`,
+
+  hipthrust: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bench -->
+    <rect x="30" y="62" width="55" height="12" rx="4" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Floor -->
+    <rect x="20" y="115" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Figure - hips up -->
+    <circle cx="58" cy="55" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Upper back on bench -->
+    <!-- Hips up position -->
+    <line x1="58" y1="65" x2="100" y2="72" stroke="#3a3a3a" stroke-width="14" stroke-linecap="round"/>
+    <!-- Legs -->
+    <line x1="100" y1="72" x2="108" y2="115" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/>
+    <line x1="100" y1="72" x2="126" y2="115" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/>
+    <!-- Bar on hips -->
+    <rect x="75" y="66" width="60" height="7" rx="3" fill="#666" stroke="#888" stroke-width="1"/>
+    <rect x="68" y="62" width="12" height="15" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <rect x="130" y="62" width="12" height="15" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <!-- Up arrow -->
+    <path d="M100 60 L100 50" stroke="#c8382a" stroke-width="2" stroke-dasharray="3,2"/>
+    <text x="100" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">HIP THRUST</text>
+  </svg>`,
+
+  trazioni: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bar -->
+    <rect x="40" y="25" width="120" height="7" rx="3" fill="#555" stroke="#777" stroke-width="1"/>
+    <rect x="32" y="18" width="10" height="22" rx="3" fill="#444"/>
+    <rect x="158" y="18" width="10" height="22" rx="3" fill="#444"/>
+    <!-- Figure hanging -->
+    <circle cx="100" cy="50" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="88" y="60" width="24" height="32" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Arms up gripping bar -->
+    <line x1="90" y1="62" x2="72" y2="30" stroke="#555" stroke-width="6" stroke-linecap="round"/>
+    <line x1="110" y1="62" x2="128" y2="30" stroke="#555" stroke-width="6" stroke-linecap="round"/>
+    <!-- Legs -->
+    <line x1="92" y1="90" x2="86" y2="118" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <line x1="108" y1="90" x2="114" y2="118" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <!-- Width arrows -->
+    <path d="M72 45 L88 60" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <path d="M128 45 L112 60" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <text x="100" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">TRAZIONI SBARRA</text>
+  </svg>`,
+
+  rematore: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bench -->
+    <rect x="55" y="60" width="70" height="10" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="62" y="70" width="8" height="20" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="115" y="70" width="8" height="20" rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Floor -->
+    <rect x="20" y="110" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Figure bent over -->
+    <circle cx="85" cy="42" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Torso parallel to ground -->
+    <line x1="85" y1="52" x2="140" y2="58" stroke="#3a3a3a" stroke-width="12" stroke-linecap="round"/>
+    <!-- Support arm on bench -->
+    <line x1="88" y1="58" x2="90" y2="68" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Pulling arm -->
+    <line x1="130" y1="58" x2="138" y2="80" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Dumbbell -->
+    <rect x="132" y="78" width="12" height="18" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <!-- Arrow showing pull -->
+    <path d="M138 78 L130 60" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <!-- Leg -->
+    <line x1="140" y1="68" x2="145" y2="110" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <line x1="80" y1="62" x2="78" y2="110" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <text x="100" y="125" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">REMATORE MANUBRIO</text>
+  </svg>`,
+
+  curl: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Floor -->
+    <rect x="20" y="115" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Figure standing -->
+    <circle cx="100" cy="28" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="88" y="38" width="24" height="35" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="88" y="71" width="10" height="44" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="102" y="71" width="10" height="44" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Left arm curled -->
+    <line x1="90" y1="50" x2="72" y2="60" stroke="#555" stroke-width="6" stroke-linecap="round"/>
+    <line x1="72" y1="60" x2="65" y2="45" stroke="#555" stroke-width="6" stroke-linecap="round"/>
+    <rect x="58" y="36" width="12" height="18" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <!-- Right arm down -->
+    <line x1="110" y1="50" x2="128" y2="60" stroke="#555" stroke-width="6" stroke-linecap="round"/>
+    <line x1="128" y1="60" x2="132" y2="80" stroke="#555" stroke-width="6" stroke-linecap="round"/>
+    <rect x="128" y="78" width="12" height="18" rx="3" fill="#c8382a" stroke="#e04030" stroke-width="1"/>
+    <!-- Arc arrow -->
+    <path d="M132 78 Q138 65 128 50" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+    <text x="100" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">CURL BICIPITI</text>
+  </svg>`,
+
+  hip90: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Floor -->
+    <rect x="20" y="112" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Figure seated on floor in 90/90 -->
+    <circle cx="90" cy="55" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Torso upright -->
+    <rect x="82" y="65" width="16" height="28" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Front leg (90 degree) -->
+    <line x1="90" y1="90" x2="60" y2="92" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <line x1="60" y1="92" x2="58" y2="112" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <!-- Back leg (90 degree behind) -->
+    <line x1="90" y1="90" x2="130" y2="88" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <line x1="130" y1="88" x2="148" y2="112" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/>
+    <!-- 90° angle markers -->
+    <text x="68" y="100" fill="#c8382a" font-size="10" font-family="sans-serif">90°</text>
+    <text x="128" y="98" fill="#c8382a" font-size="10" font-family="sans-serif">90°</text>
+    <text x="100" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">HIP 90/90 STRETCH</text>
+  </svg>`,
+
+  nordic: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Floor -->
+    <rect x="20" y="112" width="160" height="3" rx="1" fill="#222"/>
+    <!-- Anchor (partner holding feet or machine) -->
+    <rect x="55" y="98" width="40" height="14" rx="4" fill="#333" stroke="#555" stroke-width="1"/>
+    <!-- Figure -->
+    <circle cx="100" cy="35" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <!-- Torso angled forward -->
+    <line x1="100" y1="45" x2="90" y2="80" stroke="#3a3a3a" stroke-width="14" stroke-linecap="round"/>
+    <!-- Arms bracing -->
+    <line x1="92" y1="62" x2="68" y2="75" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <line x1="88" y1="62" x2="64" y2="55" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Legs on floor -->
+    <line x1="90" y1="80" x2="75" y2="108" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/>
+    <line x1="90" y1="80" x2="95" y2="108" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/>
+    <!-- Hamstring highlight -->
+    <path d="M90 80 Q78 90 76 105" stroke="#c8382a" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+    <text x="100" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">NORDIC CURL</text>
+  </svg>`,
+
+  facepull: `<svg viewBox="0 0 200 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cable machine -->
+    <rect x="148" y="20" width="20" height="90" rx="4" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <circle cx="158" cy="45" r="6" fill="#444" stroke="#666" stroke-width="1"/>
+    <!-- Cable rope -->
+    <line x1="152" y1="45" x2="120" y2="58" stroke="#888" stroke-width="2"/>
+    <line x1="152" y1="45" x2="120" y2="52" stroke="#888" stroke-width="2"/>
+    <!-- Figure -->
+    <circle cx="90" cy="48" r="10" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="78" y="58" width="24" height="35" rx="4" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+    <rect x="78" y="91" width="10" height="28" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <rect x="92" y="91" width="10" height="28" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- Arms pulling to face -->
+    <line x1="90" y1="62" x2="110" y2="55" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <line x1="90" y1="62" x2="110" y2="62" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Pull arrow -->
+    <path d="M115 55 L100 55" stroke="#c8382a" stroke-width="1.5" fill="none" marker-end="url(#arr)" stroke-dasharray="3,2"/>
+    <text x="90" y="128" text-anchor="middle" fill="#444" font-size="9" font-family="sans-serif">FACE PULL CAVO</text>
+  </svg>`,
+};
+
+// DAY DATA
+const dayData = {
+  lun: {
+    type: 'rest',
+    title: 'Recupero Post-Gara',
+    subtitle: 'Lunedì',
+    desc: 'Il corpo ha dato tutto ieri sera. I dolori muscolari domenica→lunedì sono normali: microlesioni che portano adattamento. Riposa, mangia bene, idratati.',
+    exercises: null,
+    tip: '💡 Approfitta per fare stretching leggero se vuoi. Niente di intenso — solo mobilità dolce. Il riposo è allenamento.'
+  },
+  mar: {
+    type: 'training',
+    title: 'Upper Push',
+    subtitle: 'Martedì — Forza A',
+    desc: 'Petto, spalle, tricipiti. Recupero 60–75" tra le serie. Questo schema costruisce il V-shape lean che vuoi — non volume, definizione.',
+    exercises: [
+      {
+        name: 'Panca Piana', illus: 'panca',
+        sets: 4, reps: '8–10', rest: '75"',
+        weight: '50–60 kg',
+        weightNote: 'Inizia a 50kg. Se arrivi a 10 rip pulite per 4 serie, +2.5kg la settimana dopo.',
+        tip: 'Controllo totale: 2 secondi nella discesa, esplosivo nella spinta. Non rimbalzare il bilanciere sul petto.',
+        cues: ['Scapole compresse e abbassate', 'Piedi piatti a terra, schiena arcuata naturale', 'Presa leggermente più larga delle spalle']
+      },
+      {
+        name: 'Military Press Manubri', illus: 'military',
+        sets: 3, reps: '10–12', rest: '60"',
+        weight: '14–18 kg/manubrio',
+        weightNote: 'Inizia con 14kg. Questa costruisce la larghezza delle spalle — non affrettare il peso.',
+        tip: 'In piedi o seduto. Spingi verticalmente, non avanti. Abbassa i manubri a livello orecchie.',
+        cues: ['Core braced durante tutto il movimento', 'Non inarcare la schiena nella fase finale', 'Respira: inspira giù, espira su']
+      },
+      {
+        name: 'Croci Manubri (inclinata 30°)', illus: 'croci',
+        sets: 3, reps: '12–15', rest: '60"',
+        weight: '10–14 kg/manubrio',
+        weightNote: 'Peso leggero — conta la forma. Sentire il petto superiore, non le spalle.',
+        tip: 'Immagina di abbracciare un albero. Non aprire troppo in basso — fermati a 90° di gomito.',
+        cues: ['Gomiti leggermente flessi durante tutto il movimento', 'Petto alto, spalle indietro', 'Il movimento arriva dalle ascelle, non dalle mani']
+      },
+      {
+        name: 'Lateral Raise', illus: 'lateral',
+        sets: 3, reps: '15', rest: '45"',
+        weight: '8–10 kg/manubrio',
+        weightNote: 'Leggero e controllato. La lentezza costruisce più delle spalle di quanto faccia il peso.',
+        tip: 'Leggermente inclinato in avanti. Alza fino a spalle, non oltre. Pollice verso il basso (come versare un bicchiere).',
+        cues: ['Non usare il momento — niente strappi', 'Tieni 1 secondo in alto', 'Scendi in 2–3 secondi']
+      },
+      {
+        name: 'Dip alle Parallele', illus: 'dip',
+        sets: 3, reps: '10–12', rest: '60"',
+        weight: 'Peso corporeo',
+        weightNote: 'Solo bodyweight per ora. Se non riesci 10 rip: usa la macchina assistita. Obiettivo: dip liberi.',
+        tip: 'Corpo leggermente inclinato in avanti per lavorare più il petto. Scendi fino a 90° di gomito.',
+        cues: ['Non scendere troppo (rischio spalla)', 'Spingi verso il basso, non avanti', 'Trattieni il respiro nella discesa, espira su']
+      },
+      {
+        name: 'Plank', illus: 'plank',
+        sets: 3, reps: '45"', rest: '30"',
+        weight: 'Bodyweight',
+        weightNote: 'Core come finisher obbligatorio. Progressione: 45" → 60" → 75" nelle settimane successive.',
+        tip: 'Contrai addome, glutei e quads simultaneamente. Il corpo deve essere una tavola rigida.',
+        cues: ['Gomiti sotto le spalle', 'Non far cadere i fianchi', 'Respira normalmente — non trattenere']
+      },
+    ]
+  },
+  mer: {
+    type: 'mobility',
+    title: 'Mobilità & Postura',
+    subtitle: 'Mercoledì — 25 minuti',
+    desc: 'Si fa in casa, senza attrezzi. Questa routine risolve i dolori da sedentarietà e prepara il corpo per giovedì. Non è facoltativa.',
+    exercises: [
+      {
+        name: 'Hip 90/90 Stretch', illus: 'hip90',
+        sets: 2, reps: '60"/lato', rest: '—',
+        weight: 'Bodyweight',
+        weightNote: 'Niente carico. Obiettivo: rilassare progressivamente i rotatori dell\'anca.',
+        tip: 'Siediti a terra con entrambe le gambe a 90°. Non forzare — lascia che la gravità faccia il lavoro.',
+        cues: ['Schiena dritta (non curvare)', 'Respira profondo — ogni espirazione = più profondo', 'Se senti bruciore: sei nel punto giusto. Dolore acuto: esci dalla posizione']
+      },
+      {
+        name: 'World\'s Greatest Stretch', illus: 'hip90',
+        sets: 2, reps: '5/lato', rest: '—',
+        weight: 'Bodyweight',
+        weightNote: 'Un esercizio solo che mobilizza tutto: anca, schiena, torace.',
+        tip: 'Cerca video "world greatest stretch" su YouTube — vale il minuto di ricerca. È il miglior riscaldamento per un calciatore.',
+        cues: ['Lento e controllato', 'Non affrettare la sequenza', 'Respira in ogni posizione']
+      },
+      {
+        name: 'Cat-Cow + Thread the Needle', illus: 'plank',
+        sets: 2, reps: '10 + 8/lato', rest: '—',
+        weight: 'Bodyweight',
+        weightNote: 'Colonna vertebrale. Essenziale per chi passa ore seduto.',
+        tip: 'Cat-cow: muovi vertebra per vertebra. Thread the needle: ruota il torace aprendo il braccio verso il cielo.',
+        cues: ['Non forzare il range', 'Usa il respiro come guida', 'Mattina o sera: uguale efficacia']
+      },
+      {
+        name: 'Stretching Hamstring + Polpacci', illus: 'rdl',
+        sets: 1, reps: '45"/lato', rest: '—',
+        weight: 'Bodyweight',
+        weightNote: 'Flessori del ginocchio — i più tesi nei calciatori e nei sedentari.',
+        tip: 'Sdraiato a terra: porta la gamba su con una cintura o asciugamano. Non rimbalzare.',
+        cues: ['Gamba a terra completamente rilassata', 'Respira — ogni espirazione allunga', 'Non iperestendere il ginocchio']
+      },
+    ]
+  },
+  gio: {
+    type: 'training',
+    title: 'Lower Funzionale',
+    subtitle: 'Giovedì — Forza B',
+    desc: 'Le gambe del calciatore. No leg extension, no hack squat pesante. Glutei, hamstring, esplosività. Gambe funzionali, non gambe grosse.',
+    exercises: [
+      {
+        name: 'Romanian Deadlift', illus: 'rdl',
+        sets: 4, reps: '8–10', rest: '75"',
+        weight: '40–60 kg',
+        weightNote: 'Bilanciere o manubri (2x20–25kg). Inizia leggero — la forma è tutto. La schiena DEVE restare dritta.',
+        tip: 'Piedi larghezza spalle, bilanciere vicino alle gambe. Spingi il sedere indietro (non abbassarti) fino a sentire l\'hamstring teso.',
+        cues: ['Schiena neutra — non curvare mai', 'Bar vicino alle gambe per tutto il ROM', 'Fermati quando senti tensione, non dolore']
+      },
+      {
+        name: 'Bulgarian Split Squat', illus: 'bulgariansplit',
+        sets: 3, reps: '8/lato', rest: '75"',
+        weight: '12–18 kg/manubrio',
+        weightNote: 'L\'esercizio più difficile del piano. Inizia leggero (10kg). La forza arriverà.',
+        tip: 'Piede posteriore su panca, piede anteriore avanti. Scendi verticalmente — ginocchio anteriore segue le dita del piede.',
+        cues: ['Busto leggermente inclinato in avanti', 'Ginocchio non passa il piede (o di poco)', 'Spingiti su col tallone anteriore']
+      },
+      {
+        name: 'Hip Thrust', illus: 'hipthrust',
+        sets: 3, reps: '10–12', rest: '60"',
+        weight: '40–70 kg',
+        weightNote: 'Questo esercizio costruisce la potenza del tiro. Spalle sulla panca, bilanciere sui fianchi (con pad).',
+        tip: 'Mento al petto, non guardare il soffitto. Spingi fino a che fianchi-busto-gambe sono in linea. Strizza i glutei in alto.',
+        cues: ['Piedi piatti, all\'altezza delle ginocchia piegate', 'Non iperestendere la schiena lombare', 'Pausa di 1 secondo in cima']
+      },
+      {
+        name: 'Nordic Curl', illus: 'nordic',
+        sets: 3, reps: '6–8', rest: '60"',
+        weight: 'Bodyweight',
+        weightNote: 'Difficilissimo. Aspettati di non arrivarci subito — normale. Inizia assistito (usa una banda).',
+        tip: 'Fai tenere le caviglie da un partner o bloccale sotto un macchinario. Abbassati il più lentamente possibile.',
+        cues: ['Corpo rigido come un'asse', 'Rallenta il più possibile nella discesa', 'Risali aiutandoti con le mani se necessario']
+      },
+      {
+        name: 'Calf Raise su Step', illus: 'plank',
+        sets: 3, reps: '15/lato', rest: '45"',
+        weight: 'Bodyweight o manubrio',
+        weightNote: 'Unilaterale su gradino. Tallone che va sotto il livello del gradino nella discesa.',
+        tip: 'Range completo: scendi il più possibile, sali il più possibile. Lento e controllato.',
+        cues: ['Non usare il rimbalzo', 'Pausa 1 secondo in cima', 'Aumenta peso solo quando 15 rip diventano facili']
+      },
+    ]
+  },
+  ven: {
+    type: 'training',
+    title: 'Upper Pull',
+    subtitle: 'Venerdì — Forza C',
+    desc: 'Schiena e bicipiti. La schiena larga crea il V-shape lean. Costruirla bene risolve anche i dolori posturali da scrivania.',
+    exercises: [
+      {
+        name: 'Trazioni alla Sbarra', illus: 'trazioni',
+        sets: 4, reps: 'Max (target 6–10)', rest: '90"',
+        weight: 'Peso corporeo',
+        weightNote: 'Se non arrivi a 6 rip: usa la lat machine a 60–70kg. Lavora verso le trazioni libere — è l\'obiettivo delle 12 settimane.',
+        tip: 'Presa larga, gomiti verso il basso e indietro (non fuori). Porta il petto alla sbarra, non il mento.',
+        cues: ['Scapole abbassate prima di iniziare il pull', 'Gambe incrociate e stabili', 'Non dondolare — movimento controllato']
+      },
+      {
+        name: 'Rematore Manubrio (1 braccio)', illus: 'rematore',
+        sets: 3, reps: '10–12/lato', rest: '60"',
+        weight: '20–28 kg/manubrio',
+        weightNote: 'Manubrio pesante ma controllato. Il gomito guida il movimento — non la mano.',
+        tip: 'Mano e ginocchio dello stesso lato sulla panca. Tira il gomito verso il soffitto, non verso il corpo.',
+        cues: ['Non ruotare il busto (o poco)', 'Mantieni la schiena parallela al suolo', 'Pausa in cima — senti la contrazione del dorsale']
+      },
+      {
+        name: 'Face Pull Cavo', illus: 'facepull',
+        sets: 3, reps: '15', rest: '45"',
+        weight: '12–18 kg',
+        weightNote: 'Cavo al livello degli occhi, corda doppia. Fondamentale per la salute della spalla — non skipper mai questo.',
+        tip: 'Tira verso il viso, gomiti alti. Alla fine del movimento: mani separate, pollici verso l\'orecchio.',
+        cues: ['Cavo al livello della faccia o leggermente sopra', 'Non portare il peso con le braccia — usa la schiena', 'Lento nel ritorno']
+      },
+      {
+        name: 'Curl Bilanciere o Manubri', illus: 'curl',
+        sets: 3, reps: '10–12', rest: '60"',
+        weight: 'Bilanciere: 25–35 kg / Manubri: 12–16 kg/lato',
+        weightNote: 'Il peso che ti permette 10 rip senza dondolare. Il dondolio annulla tutto il lavoro.',
+        tip: 'Gomiti fissi ai fianchi. Porta i manubri alle spalle — non oltre. Scendi lentamente (3 secondi).',
+        cues: ['Non muovere i gomiti', 'Strizza il bicipite in cima', 'La discesa è metà del lavoro']
+      },
+      {
+        name: 'Hammer Curl', illus: 'curl',
+        sets: 2, reps: '12', rest: '45"',
+        weight: '12–16 kg/manubrio',
+        weightNote: 'Presa neutra (pollici in su). Lavora brachiale e avambraccio — dà spessore al braccio.',
+        tip: 'Stessi principi del curl normale. Alternato (un braccio alla volta) o contemporaneo.',
+        cues: ['Polso neutro per tutto', 'Non flettere il polso', 'Controllato e lento']
+      },
+    ]
+  },
+  sab: {
+    type: 'rest',
+    title: 'Riposo Pre-Gara',
+    subtitle: 'Sabato — Obbligatorio',
+    desc: 'Le gambe fresche domenica si costruiscono sabato. Questo non è un giorno perso — è parte del piano.',
+    exercises: null,
+    tip: '⚽ Massimo: 10–15 minuti di stretching leggero se ti senti teso. Niente palestra, niente corsa. Se la sera esci: attenzione all\'alcol — impatta le prestazioni del giorno dopo in modo misurabile.'
+  },
+  dom: {
+    type: 'football',
+    title: 'Calcio a 8',
+    subtitle: 'Domenica — Cardio Naturale',
+    desc: 'Questa è la tua sessione cardio della settimana. Non serve aggiungere altro. Il calcio fa già tutto: HIIT naturale, esplosività, resistenza.',
+    exercises: null,
+    tip: '⚽ Warm-up 10 min prima: jogging leggero + mobilità dinamica. Stretching 10 min dopo a mente fredda. Bevi acqua ogni 15 min di gioco. Post-gara: qualcosa di proteico entro 45 minuti.'
+  }
+};
+
+// APP LOGIC
+let currentPanel = 'week';
+
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  currentPanel = id;
+  document.getElementById('appContent').scrollTop = 0;
+}
+
+function openDay(dayKey) {
+  const day = dayData[dayKey];
+  const content = document.getElementById('day-content');
+
+  let html = `
+    <button class="back-btn" onclick="goBack()">‹ Settimana</button>
+    <div class="section-pad">
+      <div class="s-label">${day.subtitle}</div>
+      <div class="s-title">${day.title}</div>
+      <div class="s-desc">${day.desc}</div>
+  `;
+
+  if (day.tip && !day.exercises) {
+    html += `<div class="alert alert-neutral"><p>${day.tip}</p></div>`;
+  }
+
+  if (day.exercises) {
+    day.exercises.forEach((ex, i) => {
+      const illusSvg = illustrations[ex.illus] || '';
+      html += `
+        <div class="ex-block">
+          <div class="ex-summary" onclick="toggleEx(${i})">
+            <div class="ex-illus">${illusSvg}</div>
+            <div class="ex-info">
+              <div class="ex-name">${ex.name}</div>
+              <div class="ex-stats">
+                <span class="ex-stat"><strong>${ex.sets}</strong> serie</span>
+                <span class="ex-stat"><strong>${ex.reps}</strong> rip</span>
+                <span class="ex-stat">rec <strong>${ex.rest}</strong></span>
+              </div>
+            </div>
+            <div class="ex-chevron" id="chev-${i}">›</div>
+          </div>
+          <div class="ex-detail" id="detail-${i}">
+            <div class="ex-detail-illus">${illusSvg}</div>
+            <div class="ex-weight-box">
+              <div class="ex-weight-label">⚖️ Peso orientativo</div>
+              <div class="ex-weight-value">${ex.weight}</div>
+              <div class="ex-weight-sub">${ex.weightNote}</div>
+            </div>
+            <div class="ex-tip">${ex.tip}</div>
+            ${ex.cues.map(c => `<div class="ex-cue"><div class="ex-cue-dot"></div><span>${c}</span></div>`).join('')}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  html += `</div><div class="pb-safe"></div>`;
+  content.innerHTML = html;
+
+  document.getElementById('panel-day').classList.add('active');
+  document.getElementById('panel-week').classList.remove('active');
+  document.getElementById('appContent').scrollTop = 0;
+}
+
+function toggleEx(i) {
+  const detail = document.getElementById('detail-' + i);
+  const chev = document.getElementById('chev-' + i);
+  const isOpen = detail.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.ex-detail').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.ex-chevron').forEach(c => { c.classList.remove('open'); c.textContent = '›'; });
+  if (!isOpen) {
+    detail.classList.add('open');
+    chev.classList.add('open');
+    chev.textContent = '⌄';
+  }
+}
+
+function goBack() {
+  document.getElementById('panel-day').classList.remove('active');
+  document.getElementById('panel-week').classList.add('active');
+  document.getElementById('appContent').scrollTop = 0;
+}
+
+// Set today badge
+const days = ['dom','lun','mar','mer','gio','ven','sab'];
+const dayNames = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const today = new Date().getDay();
+const todayKey = days[today];
+const badge = document.getElementById('todayBadge');
+badge.textContent = dayNames[today];
+
+const trainingDays = ['mar','mer','gio','ven'];
+if (trainingDays.includes(todayKey) || todayKey === 'dom') {
+  badge.classList.add('active-day');
+}
+
+// Highlight today in week
+const dayCards = document.querySelectorAll('.day-card');
+const dayOrder = ['lun','mar','mer','gio','ven','sab','dom'];
+const todayIdx = dayOrder.indexOf(todayKey);
+if (todayIdx >= 0 && dayCards[todayIdx]) {
+  dayCards[todayIdx].classList.add('today');
+}
+
+</script>
+</body>
+</html>
