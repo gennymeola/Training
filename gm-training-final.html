@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Training — Piano Atletico</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f3ee;
+    --cream: #ede9e0;
+    --red: #c8382a;
+    --grey: #6b6b6b;
+    --card: #111111;
+    --border: #1e1e1e;
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── PASSWORD SCREEN ─── */
+  #lock-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .lock-inner {
+    width: 100%;
+    max-width: 380px;
+    padding: 40px 32px;
+  }
+
+  .lock-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 20px;
+  }
+
+  .lock-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+  }
+
+  .lock-title span { color: var(--red); }
+
+  .lock-sub {
+    font-size: 13px;
+    color: var(--grey);
+    margin-bottom: 40px;
+    border-left: 2px solid var(--border);
+    padding-left: 12px;
+  }
+
+  .lock-input-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .lock-input {
+    width: 100%;
+    background: #111;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .lock-input:focus { border-color: var(--red); }
+  .lock-input.error { border-color: #c8382a; animation: shake 0.3s; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  .lock-btn {
+    width: 100%;
+    background: var(--red);
+    border: none;
+    border-radius: 6px;
+    padding: 16px;
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .lock-btn:hover { background: #a52d22; }
+
+  .lock-error {
+    font-size: 12px;
+    color: var(--red);
+    margin-top: 10px;
+    display: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .lock-footer {
+    margin-top: 40px;
+    font-size: 11px;
+    color: #333;
+    letter-spacing: 1px;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* ─── MAIN APP (hidden until unlock) ─── */
+  #app { display: none; min-height: 100vh; }
+
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: #0d0d0d;
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 32px 24px 24px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-logo span { color: var(--red); }
+
+  .sidebar-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .sidebar-nav { padding: 20px 0; flex: 1; }
+
+  .nav-section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #333;
+    padding: 16px 24px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    font-size: 13px;
+    color: var(--grey);
+  }
+
+  .nav-item:hover { color: var(--white); background: #111; }
+
+  .nav-item.active {
+    color: var(--white);
+    border-left-color: var(--red);
+    background: #111;
+  }
+
+  .nav-item-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #333;
+  }
+
+  /* ─── CONTENT ─── */
+  .content {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+  }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+  }
+
+  .topbar-breadcrumb {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .topbar-breadcrumb span { color: var(--white); }
+
+  .topbar-right {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #333;
+  }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    display: none;
+    max-width: 860px;
+    padding: 60px 48px 100px;
+  }
+
+  .section.active { display: block; }
+
+  /* ─── TYPOGRAPHY ─── */
+  .section-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+  }
+
+  .section-lead {
+    font-size: 16px;
+    color: #999;
+    max-width: 620px;
+    line-height: 1.75;
+    margin-bottom: 48px;
+    border-left: 2px solid var(--border);
+    padding-left: 20px;
+  }
+
+  .sub-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin: 48px 0 20px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .sub-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+  .block-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+
+  p.body { font-size: 15px; color: #888; line-height: 1.75; margin-bottom: 24px; }
+
+  /* ─── CARDS ─── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: #333; }
+
+  .card-icon { font-size: 22px; margin-bottom: 10px; display: block; }
+
+  .card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .card p { font-size: 13px; color: #666; line-height: 1.6; }
+
+  /* ─── ALERTS ─── */
+  .alert {
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+
+  .alert-warn { background: #110a0a; border: 1px solid #2a1010; border-left: 3px solid var(--red); }
+  .alert-ok { background: #0a110a; border: 1px solid #102a10; border-left: 3px solid #4caf50; }
+  .alert-info { background: var(--card); border: 1px solid var(--border); border-left: 3px solid #444; }
+
+  .alert h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .alert-warn h4 { color: var(--red); }
+  .alert-ok h4 { color: #4caf50; }
+  .alert-info h4 { color: #666; }
+  .alert p { font-size: 13px; color: #777; line-height: 1.65; }
+
+  /* ─── NUMBERS ─── */
+  .numbers-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .number-box {
+    flex: 1;
+    min-width: 100px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 16px;
+    text-align: center;
+  }
+
+  .number-box .n {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .number-box .n.red { color: var(--red); }
+
+  .number-box .l {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-top: 6px;
+  }
+
+  /* ─── WEEK TABLE ─── */
+  .week-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+
+  .week-table th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--grey);
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .week-table td {
+    padding: 16px;
+    border-bottom: 1px solid #111;
+    font-size: 14px;
+    vertical-align: top;
+  }
+
+  .week-table tr:hover td { background: #0d0d0d; }
+
+  .day-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .type-badge {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-top: 4px;
+  }
+
+  .badge-strength { background: #0d0d25; color: #7070cc; }
+  .badge-football { background: #0d1a0d; color: #60aa60; }
+  .badge-rest { background: #141414; color: #555; }
+  .badge-mobility { background: #1a160a; color: #aa8844; }
+
+  .day-detail { color: #666; font-size: 13px; line-height: 1.5; }
+
+  /* ─── EXERCISE BLOCKS ─── */
+  .workout-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .workout-section-header {
+    padding: 16px 22px;
+    background: #0d0d0d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .workout-section-header h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .workout-section-header span {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+
+  /* ─── EXERCISE ROW ─── */
+  .ex-row {
+    border-bottom: 1px solid #141414;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .ex-row:last-child { border-bottom: none; }
+  .ex-row:hover .ex-top { background: #111; }
+
+  .ex-top {
+    padding: 16px 22px;
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .ex-illus-thumb {
+    width: 56px;
+    height: 56px;
+    background: #141414;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ex-illus-thumb svg { width: 48px; height: 48px; }
+
+  .ex-meta { }
+
+  .ex-name {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--white);
+  }
+
+  .ex-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .ex-chip {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+    background: #141414;
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  .ex-chip strong { color: var(--white); }
+
+  .ex-toggle {
+    font-size: 18px;
+    color: var(--grey);
+    transition: transform 0.2s;
+    padding: 0 4px;
+  }
+
+  .ex-toggle.open { transform: rotate(90deg); color: var(--red); }
+
+  /* ─── EXERCISE DETAIL ─── */
+  .ex-detail {
+    display: none;
+    padding: 0 22px 20px;
+    border-top: 1px solid #141414;
+    background: #0d0d0d;
+  }
+
+  .ex-detail.open { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .ex-illus-big {
+    background: #111;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+  }
+
+  .ex-illus-big svg { width: 100%; max-width: 220px; height: 160px; }
+
+  .ex-detail-body { padding: 16px 0; }
+
+  .ex-weight-box {
+    background: #110808;
+    border: 1px solid #2a1010;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+
+  .ex-weight-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 4px;
+  }
+
+  .ex-weight-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--white);
+    line-height: 1.2;
+  }
+
+  .ex-weight-note { font-size: 12px; color: #666; margin-top: 6px; line-height: 1.5; }
+
+  .ex-tip { font-size: 13px; color: #777; line-height: 1.65; margin-bottom: 10px; }
+
+  .ex-cue {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 5px;
+  }
+
+  .cue-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  .ex-cue span { font-size: 12px; color: #666; line-height: 1.5; }
+
+  /* ─── TIMELINE ─── */
+  .timeline { position: relative; padding-left: 28px; }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px; top: 0; bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .tl-item { position: relative; padding-bottom: 36px; }
+
+  .tl-dot {
+    position: absolute;
+    left: -24px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #333;
+    border: 2px solid var(--black);
+  }
+
+  .tl-item.current .tl-dot { background: var(--red); }
+
+  .tl-phase {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #444;
+    margin-bottom: 6px;
+  }
+
+  .tl-item.current .tl-phase { color: var(--red); }
+
+  .tl-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .tl-body { font-size: 13px; color: #666; line-height: 1.7; max-width: 560px; }
+
+  /* ─── NUTRITION ─── */
+  .meal-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+
+  .meal-head {
+    padding: 14px 20px;
+    background: #0d0d0d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .meal-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .meal-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+
+  .food-row {
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #111;
+    font-size: 14px;
+  }
+
+  .food-row:last-child { border-bottom: none; }
+  .food-qty { color: var(--grey); font-size: 13px; }
+
+  /* ─── MOBILE ─── */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 200;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--white);
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 99;
+  }
+
+  @media (max-width: 768px) {
+    .menu-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .content { margin-left: 0; }
+    .section { padding: 70px 20px 80px; }
+    .topbar { padding: 14px 20px 14px 60px; }
+    .ex-detail.open { grid-template-columns: 1fr; }
+    .ex-top { grid-template-columns: 50px 1fr auto; }
+  }
+
+  /* ─── DIVIDER ─── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  .tag { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 3px; border: 1px solid var(--border); color: var(--grey); margin: 3px 3px 3px 0; }
+  .tag.ok { border-color: #1a3d1a; color: #6aaa6a; }
+  .tag.warn { border-color: #3d2a1a; color: #cc9944; }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD SCREEN -->
+<div id="lock-screen">
+  <div class="lock-inner">
+    <div class="lock-label">Documento Riservato</div>
+    <div class="lock-title">GM<br><span>Training</span></div>
+    <div class="lock-sub">Piano Atletico Personalizzato — 2026<br>Accesso protetto</div>
+    <div class="lock-input-wrap">
+      <input type="password" class="lock-input" id="passInput" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()">
+    </div>
+    <button class="lock-btn" onclick="unlock()">Accedi →</button>
+    <div class="lock-error" id="lockError">Password errata. Riprova.</div>
+    <div class="lock-footer">Gennaro Meola · 2026</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <button class="menu-toggle" onclick="toggleMenu()">☰ Menu</button>
+  <div class="sidebar-overlay" id="overlay" onclick="closeMenu()"></div>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">GM <span>Training</span></div>
+        <div class="sidebar-sub">Piano Atletico 2026</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Documento</div>
+        <div class="nav-item active" onclick="showSection('analisi', this)">
+          <span class="nav-item-icon">📋</span> Analisi & Obiettivi
+        </div>
+        <div class="nav-item" onclick="showSection('settimana', this)">
+          <span class="nav-item-icon">📅</span> Struttura Settimanale
+        </div>
+
+        <div class="nav-section-label">Schede Allenamento</div>
+        <div class="nav-item" onclick="showSection('scheda-a', this)">
+          <span class="nav-item-icon">💪</span> Martedì — Upper Push
+        </div>
+        <div class="nav-item" onclick="showSection('mobilita', this)">
+          <span class="nav-item-icon">🧘</span> Mercoledì — Mobilità
+        </div>
+        <div class="nav-item" onclick="showSection('scheda-b', this)">
+          <span class="nav-item-icon">🦵</span> Giovedì — Lower
+        </div>
+        <div class="nav-item" onclick="showSection('scheda-c', this)">
+          <span class="nav-item-icon">🏋️</span> Venerdì — Upper Pull
+        </div>
+        <div class="nav-item" onclick="showSection('calcio', this)">
+          <span class="nav-item-icon">⚽</span> Domenica — Calcio
+        </div>
+
+        <div class="nav-section-label">Piano</div>
+        <div class="nav-item" onclick="showSection('alimentazione', this)">
+          <span class="nav-item-icon">🥗</span> Alimentazione
+        </div>
+        <div class="nav-item" onclick="showSection('percorso', this)">
+          <span class="nav-item-icon">🎯</span> Percorso 12 Settimane
+        </div>
+      </nav>
+      <div class="sidebar-footer">Documento privato · GM · 2026</div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+      <div class="topbar">
+        <div class="topbar-breadcrumb">GM Training / <span id="breadcrumb-current">Analisi</span></div>
+        <div class="topbar-right">Privato</div>
+      </div>
+
+      <!-- ANALISI -->
+      <div class="section active" id="sec-analisi">
+        <div class="section-eyebrow">Punto di partenza</div>
+        <div class="section-title">Chi sei<br>atleticamente</div>
+        <div class="section-lead">Ex calciatore con base motoria solida, vita sedentaria da designer, obiettivo estetico lean + performance sul campo. Il quadro è ottimo: hai già tutto il potenziale, manca solo il sistema.</div>
+
+        <div class="numbers-row">
+          <div class="number-box"><div class="n">1,75</div><div class="l">Altezza (m)</div></div>
+          <div class="number-box"><div class="n">70</div><div class="l">Peso (kg)</div></div>
+          <div class="number-box"><div class="n">22,9</div><div class="l">BMI — Ottimale</div></div>
+          <div class="number-box"><div class="n red">~8%</div><div class="l">Body fat target</div></div>
+        </div>
+
+        <div class="alert alert-ok">
+          <h4>✓ Cosa gioca a tuo favore</h4>
+          <p>Il tuo BMI è perfettamente nel range atletico. Non devi perdere peso né mettere massa — devi ricomporre: meno grasso viscerale, più muscolo funzionale. Hai già una base motoria calcistica che la maggior parte delle persone in palestra non avrà mai.</p>
+        </div>
+
+        <div class="alert alert-warn">
+          <h4>⚠ I problemi da risolvere</h4>
+          <p>Allenamento casuale senza struttura → nessun progresso misurabile. Sedentarietà professionale → catena posteriore debole, flessori dell'anca corti, postura compromessa. Questi sono i veri nemici dei dolori fisici che hai accusato.</p>
+        </div>
+
+        <div class="sub-title">Obiettivi</div>
+        <div class="block-title">Cosa costruiamo</div>
+
+        <div class="cards-grid">
+          <div class="card"><span class="card-icon">🏃</span><h3>Corpo da Atleta</h3><p>Muscolo magro, addome visibile, spalle larghe. Non volume da bodybuilder — definizione funzionale. Brad Pitt Fight Club, non Schwarzenegger.</p></div>
+          <div class="card"><span class="card-icon">⚽</span><h3>Performance Calcistica</h3><p>Gambe fresche alla domenica, fiato da 90 minuti, esplosività nei dribbling. Il campo è il tuo test finale ogni settimana.</p></div>
+          <div class="card"><span class="card-icon">🧘</span><h3>Prevenzione Dolori</h3><p>Catena posteriore forte, core stabile, mobilità hip. Eliminano il 90% dei dolori da sedentarietà. Non è optional — è la base.</p></div>
+          <div class="card"><span class="card-icon">🔁</span><h3>Costanza Sostenibile</h3><p>Allenamenti che ti piacciono abbastanza da farli. Struttura con flessibilità. Niente che ti faccia odiare la palestra.</p></div>
+        </div>
+      </div>
+
+      <!-- SETTIMANA -->
+      <div class="section" id="sec-settimana">
+        <div class="section-eyebrow">Struttura settimanale</div>
+        <div class="section-title">7 giorni,<br>sistema completo</div>
+        <div class="section-lead">La domenica sera è fissa con il calcio. Il lunedì è recupero post-gara. La palestra parte da martedì — quando il corpo è pronto.</div>
+
+        <table class="week-table">
+          <thead>
+            <tr>
+              <th>Giorno</th><th>Tipo</th><th>Sessione</th><th>Durata</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="day-name">Lunedì</div><div class="type-badge badge-rest">Recupero</div></td>
+              <td class="day-detail">Post-gara</td>
+              <td class="day-detail">Riposo obbligatorio. I dolori sono normali — microlesioni che diventano adattamento. Al massimo stretching dolce.</td>
+              <td class="day-detail">—</td>
+            </tr>
+            <tr>
+              <td><div class="day-name">Martedì</div><div class="type-badge badge-strength">Forza A</div></td>
+              <td class="day-detail">Upper Push</td>
+              <td class="day-detail">Petto / Spalle / Tricipiti + Core</td>
+              <td class="day-detail">60 min</td>
+            </tr>
+            <tr>
+              <td><div class="day-name">Mercoledì</div><div class="type-badge badge-mobility">Mobilità</div></td>
+              <td class="day-detail">Postura & Hip</td>
+              <td class="day-detail">Routine mobilità — in casa, senza attrezzi. Non saltare.</td>
+              <td class="day-detail">25 min</td>
+            </tr>
+            <tr>
+              <td><div class="day-name">Giovedì</div><div class="type-badge badge-strength">Forza B</div></td>
+              <td class="day-detail">Lower Funzionale</td>
+              <td class="day-detail">Gambe calcistiche — glutei, hamstring, core laterale</td>
+              <td class="day-detail">55 min</td>
+            </tr>
+            <tr>
+              <td><div class="day-name">Venerdì</div><div class="type-badge badge-strength">Forza C</div></td>
+              <td class="day-detail">Upper Pull</td>
+              <td class="day-detail">Schiena / Bicipiti + Spalle circuit finale</td>
+              <td class="day-detail">60 min</td>
+            </tr>
+            <tr>
+              <td><div class="day-name">Sabato</div><div class="type-badge badge-rest">Pre-gara</div></td>
+              <td class="day-detail">Riposo</td>
+              <td class="day-detail">RIPOSO OBBLIGATORIO. Gambe fresche per domenica. Max 15 min stretching.</td>
+              <td class="day-detail">—</td>
+            </tr>
+            <tr>
+              <td><div class="day-name">Domenica</div><div class="type-badge badge-football">Calcio</div></td>
+              <td class="day-detail">Torneo</td>
+              <td class="day-detail">Calcio a 8 — cardio naturale. Warm-up 10 min prima, stretching 10 min dopo.</td>
+              <td class="day-detail">90–120 min</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert-warn">
+          <h4>⚡ Regola d'oro</h4>
+          <p>Se salti un allenamento, salta mercoledì. Mai martedì, giovedì o venerdì. Il venerdì è lontano abbastanza dalla domenica da non pesare sulle gambe.</p>
+        </div>
+      </div>
+
+      <!-- SCHEDA A -->
+      <div class="section" id="sec-scheda-a">
+        <div class="section-eyebrow">Martedì — Forza A</div>
+        <div class="section-title">Upper Push</div>
+        <div class="section-lead">Petto, spalle, tricipiti. Recupero 60–75" tra le serie. Questo schema costruisce il V-shape lean — non volume, definizione.</div>
+
+        <div class="alert alert-info">
+          <h4>Come leggere i pesi</h4>
+          <p>I pesi indicati sono fasce orientative per il tuo profilo (70kg, un anno di palestra intermittente). Inizia sempre dal basso della fascia. Se arrivi a tutte le rip con 2 rip di riserva → aumenta di 2,5kg la settimana dopo.</p>
+        </div>
+
+        <!-- Riscaldamento -->
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Riscaldamento</h3><span>10 min — non saltare</span></div>
+          <div id="exA0" class="ex-row">
+            <div class="ex-top" onclick="toggleEx('A0')">
+              <div class="ex-illus-thumb"><?xml version="1.0"?><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="15" r="6" fill="#3a3a3a" stroke="#555"/><line x1="20" y1="22" x2="8" y2="28" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="22" x2="52" y2="28" stroke="#555" stroke-width="3" stroke-linecap="round"/><rect x="22" y="22" width="16" height="20" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="24" y1="42" x2="20" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/><line x1="36" y1="42" x2="40" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/></svg></div>
+              <div class="ex-meta"><div class="ex-name">Arm circles + Band pull-apart</div><div class="ex-chips"><span class="ex-chip">2 serie</span><span class="ex-chip">15 rip</span><span class="ex-chip">—</span></div></div>
+              <div class="ex-toggle" id="tog-A0">›</div>
+            </div>
+            <div class="ex-detail" id="det-A0">
+              <div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><circle cx="110" cy="35" r="12" fill="#3a3a3a" stroke="#555"/><rect x="98" y="47" width="24" height="40" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="98" y1="58" x2="65" y2="45" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="122" y1="58" x2="155" y2="45" stroke="#555" stroke-width="5" stroke-linecap="round"/><path d="M65 45 Q50 35 60 25 Q70 15 75 30" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><path d="M155 45 Q170 35 160 25 Q150 15 145 30" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><line x1="102" y1="87" x2="96" y2="130" stroke="#2a2a2a" stroke-width="7" stroke-linecap="round"/><line x1="118" y1="87" x2="124" y2="130" stroke="#2a2a2a" stroke-width="7" stroke-linecap="round"/><text x="110" y="150" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">ATTIVAZIONE SPALLE</text></svg></div>
+              <div class="ex-detail-body">
+                <div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Nessun peso</div><div class="ex-weight-note">Bodyweight + eventuale banda elastica per i pull-apart</div></div>
+                <p class="ex-tip">Circles: 10 avanti + 10 indietro. Pull-apart: tieni la banda tesa e allarga le braccia lateralmente.</p>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Gomiti tesi durante i circles</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Scapole che si avvicinano nel pull-apart</span></div>
+              </div>
+            </div>
+          </div>
+          <div id="exA1" class="ex-row">
+            <div class="ex-top" onclick="toggleEx('A1')">
+              <div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="12" r="6" fill="#3a3a3a" stroke="#555"/><rect x="20" y="18" width="20" height="16" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="20" y1="25" x2="8" y2="32" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="25" x2="52" y2="32" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="22" y1="34" x2="18" y2="50" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/><line x1="38" y1="34" x2="42" y2="50" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/><rect x="8" y="48" width="44" height="3" rx="1" fill="#333"/></svg></div>
+              <div class="ex-meta"><div class="ex-name">Push-up (riscaldamento)</div><div class="ex-chips"><span class="ex-chip">2 serie</span><span class="ex-chip">12 rip</span><span class="ex-chip">30"</span></div></div>
+              <div class="ex-toggle" id="tog-A1">›</div>
+            </div>
+            <div class="ex-detail" id="det-A1">
+              <div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="120" width="180" height="3" rx="1" fill="#222"/><circle cx="170" cy="70" r="12" fill="#3a3a3a" stroke="#555"/><line x1="170" y1="82" x2="155" y2="90" stroke="#3a3a3a" stroke-width="10" stroke-linecap="round"/><line x1="155" y1="90" x2="60" y2="92" stroke="#3a3a3a" stroke-width="10" stroke-linecap="round"/><rect x="48" y="118" width="16" height="5" rx="2" fill="#444"/><rect x="80" y="118" width="16" height="5" rx="2" fill="#444"/><rect x="38" y="118" width="12" height="5" rx="2" fill="#444"/><text x="110" y="148" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">PUSH-UP — POMPA SANGUE</text></svg></div>
+              <div class="ex-detail-body">
+                <div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Bodyweight</div><div class="ex-weight-note">Non serve nient'altro. Obiettivo: portare sangue nei pettorali.</div></div>
+                <p class="ex-tip">Passo leggero — non esaurire. Core contratto, corpo rigido.</p>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Mani leggermente più larghe delle spalle</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Gomiti a 45° (non perpendicolari)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blocco principale -->
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Blocco principale</h3><span>35 min</span></div>
+
+          <!-- Panca piana -->
+          <div class="ex-row">
+            <div class="ex-top" onclick="toggleEx('A2')">
+              <div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="15" y="36" width="30" height="5" rx="2" fill="#2a2a2a" stroke="#444"/><rect x="18" y="41" width="4" height="8" rx="1" fill="#2a2a2a"/><rect x="38" y="41" width="4" height="8" rx="1" fill="#2a2a2a"/><rect x="5" y="24" width="50" height="4" rx="2" fill="#555" stroke="#777"/><rect x="2" y="20" width="7" height="11" rx="2" fill="#c8382a"/><rect x="51" y="20" width="7" height="11" rx="2" fill="#c8382a"/><ellipse cx="30" cy="32" rx="8" ry="4" fill="#3a3a3a" stroke="#555"/><line x1="24" y1="32" x2="10" y2="27" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="36" y1="32" x2="50" y2="27" stroke="#555" stroke-width="3" stroke-linecap="round"/></svg></div>
+              <div class="ex-meta"><div class="ex-name">Panca Piana</div><div class="ex-chips"><span class="ex-chip"><strong>4</strong> serie</span><span class="ex-chip"><strong>8–10</strong> rip</span><span class="ex-chip">75" riposo</span></div></div>
+              <div class="ex-toggle" id="tog-A2">›</div>
+            </div>
+            <div class="ex-detail" id="det-A2">
+              <div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="70" y="100" width="80" height="10" rx="3" fill="#2a2a2a" stroke="#444"/><rect x="78" y="110" width="8" height="22" rx="2" fill="#2a2a2a"/><rect x="134" y="110" width="8" height="22" rx="2" fill="#2a2a2a"/><rect x="30" y="72" width="160" height="6" rx="3" fill="#555" stroke="#777"/><rect x="20" y="65" width="14" height="22" rx="3" fill="#c8382a" stroke="#e04030"/><rect x="186" y="65" width="14" height="22" rx="3" fill="#c8382a" stroke="#e04030"/><ellipse cx="110" cy="90" rx="22" ry="9" fill="#3a3a3a" stroke="#555"/><circle cx="110" cy="78" r="10" fill="#3a3a3a" stroke="#555"/><line x1="96" y1="90" x2="46" y2="76" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="124" y1="90" x2="174" y2="76" stroke="#555" stroke-width="5" stroke-linecap="round"/><text x="110" y="150" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">PANCA PIANA BILANCIERE</text></svg></div>
+              <div class="ex-detail-body">
+                <div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">50–60 kg</div><div class="ex-weight-note">Inizia a 50kg. Se arrivi a 10 rip pulite per 4 serie, +2,5kg la settimana dopo.</div></div>
+                <p class="ex-tip">Controllo totale: 2 secondi nella discesa, esplosivo nella spinta. Non rimbalzare il bilanciere sul petto.</p>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Scapole compresse e abbassate durante tutto il movimento</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Piedi piatti a terra, arco lombare naturale</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Presa leggermente più larga delle spalle</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Military press -->
+          <div class="ex-row">
+            <div class="ex-top" onclick="toggleEx('A3')">
+              <div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="12" r="6" fill="#3a3a3a" stroke="#555"/><rect x="22" y="18" width="16" height="20" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="22" y1="26" x2="8" y2="20" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="26" x2="52" y2="20" stroke="#555" stroke-width="3" stroke-linecap="round"/><rect x="4" y="13" width="52" height="5" rx="2" fill="#555"/><rect x="0" y="9" width="7" height="13" rx="2" fill="#c8382a"/><rect x="53" y="9" width="7" height="13" rx="2" fill="#c8382a"/><line x1="24" y1="38" x2="20" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/><line x1="36" y1="38" x2="40" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/></svg></div>
+              <div class="ex-meta"><div class="ex-name">Military Press Manubri</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>10–12</strong> rip</span><span class="ex-chip">60" riposo</span></div></div>
+              <div class="ex-toggle" id="tog-A3">›</div>
+            </div>
+            <div class="ex-detail" id="det-A3">
+              <div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><circle cx="110" cy="28" r="12" fill="#3a3a3a" stroke="#555"/><rect x="96" y="40" width="28" height="40" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="96" y1="55" x2="55" y2="40" stroke="#555" stroke-width="6" stroke-linecap="round"/><line x1="124" y1="55" x2="165" y2="40" stroke="#555" stroke-width="6" stroke-linecap="round"/><rect x="36" y="32" width="52" height="7" rx="3" fill="#555" stroke="#777"/><rect x="26" y="26" width="14" height="18" rx="3" fill="#c8382a" stroke="#e04030"/><rect x="88" y="32" width="44" height="7" rx="3" fill="#555" stroke="#777"/><rect x="180" y="26" width="14" height="18" rx="3" fill="#c8382a" stroke="#e04030"/><line x1="100" y1="80" x2="94" y2="130" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="120" y1="80" x2="126" y2="130" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><text x="110" y="150" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">MILITARY PRESS</text></svg></div>
+              <div class="ex-detail-body">
+                <div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">14–18 kg/manubrio</div><div class="ex-weight-note">Inizia con 14kg. Costruisce la larghezza delle spalle — non affrettare il peso.</div></div>
+                <p class="ex-tip">Spingi verticalmente, non avanti. Abbassa i manubri a livello orecchie. Core braced durante tutto il movimento.</p>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Non inarcare la schiena nella fase finale</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Respira: inspira giù, espira su</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Gomiti leggermente davanti (non completamente laterali)</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lateral raise -->
+          <div class="ex-row">
+            <div class="ex-top" onclick="toggleEx('A4')">
+              <div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="12" r="6" fill="#3a3a3a" stroke="#555"/><rect x="22" y="18" width="16" height="20" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="22" y1="26" x2="6" y2="20" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="26" x2="54" y2="20" stroke="#555" stroke-width="3" stroke-linecap="round"/><circle cx="4" cy="19" r="4" fill="#c8382a"/><circle cx="56" cy="19" r="4" fill="#c8382a"/><line x1="24" y1="38" x2="20" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/><line x1="36" y1="38" x2="40" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/></svg></div>
+              <div class="ex-meta"><div class="ex-name">Lateral Raise</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>15</strong> rip</span><span class="ex-chip">45" riposo</span></div></div>
+              <div class="ex-toggle" id="tog-A4">›</div>
+            </div>
+            <div class="ex-detail" id="det-A4">
+              <div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><circle cx="110" cy="28" r="12" fill="#3a3a3a" stroke="#555"/><rect x="96" y="40" width="28" height="40" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="96" y1="55" x2="48" y2="44" stroke="#555" stroke-width="6" stroke-linecap="round"/><line x1="124" y1="55" x2="172" y2="44" stroke="#555" stroke-width="6" stroke-linecap="round"/><circle cx="44" cy="43" r="7" fill="#c8382a" stroke="#e04030"/><circle cx="176" cy="43" r="7" fill="#c8382a" stroke="#e04030"/><path d="M96 68 Q72 60 50 46" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><path d="M124 68 Q148 60 170 46" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><line x1="100" y1="80" x2="94" y2="130" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="120" y1="80" x2="126" y2="130" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><text x="110" y="150" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">LATERAL RAISE</text></svg></div>
+              <div class="ex-detail-body">
+                <div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">8–10 kg/manubrio</div><div class="ex-weight-note">Leggero e controllato. La lentezza costruisce più delle spalle di quanto faccia il peso.</div></div>
+                <p class="ex-tip">Leggermente inclinato in avanti. Alza fino a spalle, non oltre. Pollice verso il basso (come versare un bicchiere).</p>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Non usare il momento — niente strappi</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Tieni 1 secondo in alto</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Scendi in 2–3 secondi</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dip -->
+          <div class="ex-row">
+            <div class="ex-top" onclick="toggleEx('A5')">
+              <div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="12" y="22" width="4" height="25" rx="2" fill="#444"/><rect x="44" y="22" width="4" height="25" rx="2" fill="#444"/><rect x="6" y="20" width="16" height="4" rx="2" fill="#555"/><rect x="38" y="20" width="16" height="4" rx="2" fill="#555"/><circle cx="30" cy="14" r="6" fill="#3a3a3a" stroke="#555"/><rect x="22" y="20" width="16" height="16" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="22" y1="28" x2="14" y2="22" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="28" x2="46" y2="22" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="36" x2="23" y2="52" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="34" y1="36" x2="37" y2="52" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/></svg></div>
+              <div class="ex-meta"><div class="ex-name">Dip alle Parallele</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>10–12</strong> rip</span><span class="ex-chip">60" riposo</span></div></div>
+              <div class="ex-toggle" id="tog-A5">›</div>
+            </div>
+            <div class="ex-detail" id="det-A5">
+              <div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="55" y="68" width="6" height="60" rx="3" fill="#444" stroke="#555"/><rect x="159" y="68" width="6" height="60" rx="3" fill="#444" stroke="#555"/><rect x="38" y="64" width="36" height="7" rx="3" fill="#555" stroke="#777"/><rect x="146" y="64" width="36" height="7" rx="3" fill="#555" stroke="#777"/><circle cx="110" cy="48" r="12" fill="#3a3a3a" stroke="#555"/><rect x="96" y="60" width="28" height="32" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="96" y1="74" x2="62" y2="66" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="124" y1="74" x2="158" y2="66" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="102" y1="92" x2="96" y2="130" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="118" y1="92" x2="124" y2="130" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><text x="110" y="150" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">DIP PARALLELE</text></svg></div>
+              <div class="ex-detail-body">
+                <div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">Peso corporeo</div><div class="ex-weight-note">Solo bodyweight per ora. Se non riesci 10 rip: usa macchina assistita. Obiettivo: dip liberi.</div></div>
+                <p class="ex-tip">Corpo leggermente inclinato in avanti per lavorare più il petto. Scendi fino a 90° di gomito.</p>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Non scendere troppo (rischio spalla)</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Spingi verso il basso, non avanti</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Core -->
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Core — Finisher</h3><span>10 min</span></div>
+          <div class="ex-row">
+            <div class="ex-top" onclick="toggleEx('A6')">
+              <div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="45" width="50" height="3" rx="1" fill="#222"/><rect x="10" y="32" width="40" height="10" rx="4" fill="#3a3a3a" stroke="#555"/><circle cx="50" cy="30" r="6" fill="#3a3a3a" stroke="#555"/><rect x="14" y="42" width="8" height="3" rx="1" fill="#444"/><rect x="30" y="42" width="8" height="3" rx="1" fill="#444"/><rect x="6" y="42" width="6" height="3" rx="1" fill="#444"/></svg></div>
+              <div class="ex-meta"><div class="ex-name">Plank + Dead Bug</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>45"</strong> plank</span><span class="ex-chip">30" riposo</span></div></div>
+              <div class="ex-toggle" id="tog-A6">›</div>
+            </div>
+            <div class="ex-detail" id="det-A6">
+              <div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="128" width="180" height="3" rx="1" fill="#222"/><rect x="40" y="108" width="120" height="16" rx="6" fill="#3a3a3a" stroke="#555"/><circle cx="165" cy="106" r="10" fill="#3a3a3a" stroke="#555"/><rect x="48" y="122" width="16" height="5" rx="2" fill="#444"/><rect x="82" y="122" width="16" height="5" rx="2" fill="#444"/><rect x="38" y="122" width="12" height="5" rx="2" fill="#444"/><path d="M80 102 L80 92" stroke="#c8382a" stroke-width="2"/><path d="M130 102 L130 92" stroke="#c8382a" stroke-width="2"/><path d="M80 92 L130 92" stroke="#c8382a" stroke-width="2" stroke-dasharray="4,2"/><text x="110" y="150" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">PLANK — CORE STABILE</text></svg></div>
+              <div class="ex-detail-body">
+                <div class="ex-weight-box"><div class="ex-weight-label">⚖️ Progressione</div><div class="ex-weight-val">45" → 60" → 75"</div><div class="ex-weight-note">Aumenta di 10–15 secondi ogni 2 settimane quando diventa confortevole.</div></div>
+                <p class="ex-tip">Plank: contrai addome, glutei e quads simultaneamente. Dead bug: schiena a terra, estendi braccio e gamba opposta alternando.</p>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Gomiti sotto le spalle nel plank</span></div>
+                <div class="ex-cue"><div class="cue-dot"></div><span>Lombare incollata a terra nel dead bug</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILITÀ -->
+      <div class="section" id="sec-mobilita">
+        <div class="section-eyebrow">Mercoledì — Mobilità</div>
+        <div class="section-title">25 minuti<br>che cambiano tutto</div>
+        <div class="section-lead">Si fa in casa, senza attrezzi. Questa routine risolve i dolori da sedentarietà e prepara il corpo per giovedì. Non è facoltativa.</div>
+        <div class="alert alert-info"><h4>Perché è fondamentale</h4><p>I flessori dell'anca corti (da ore di seduta) sono la causa primaria dei dolori lombari e delle prestazioni calcistiche ridotte. Questa routine li attacca direttamente. In 4 settimane sentirai la differenza.</p></div>
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Sequenza completa</h3><span>25 min — niente attrezzi</span></div>
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('M1')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><circle cx="28" cy="20" r="6" fill="#3a3a3a" stroke="#555"/><rect x="20" y="26" width="16" height="18" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="24" y1="44" x2="10" y2="50" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="10" y1="50" x2="8" y2="58" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="32" y1="44" x2="50" y2="42" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="42" x2="55" y2="55" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><text x="28" y="17" fill="#c8382a" font-size="8">90°</text><text x="44" y="48" fill="#c8382a" font-size="8">90°</text></svg></div><div class="ex-meta"><div class="ex-name">Hip 90/90 Stretch</div><div class="ex-chips"><span class="ex-chip">2 serie</span><span class="ex-chip">60"/lato</span></div></div><div class="ex-toggle" id="tog-M1">›</div></div><div class="ex-detail" id="det-M1"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="140" width="180" height="3" rx="1" fill="#222"/><circle cx="90" cy="60" r="12" fill="#3a3a3a" stroke="#555"/><rect x="76" y="72" width="28" height="32" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="90" y1="104" x2="55" y2="108" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/><line x1="55" y1="108" x2="52" y2="138" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/><line x1="90" y1="104" x2="140" y2="100" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/><line x1="140" y1="100" x2="160" y2="138" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/><text x="62" y="118" fill="#c8382a" font-size="12">90°</text><text x="138" y="112" fill="#c8382a" font-size="12">90°</text><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">HIP 90/90 STRETCH</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Nessun peso</div><div class="ex-weight-note">Solo gravità. Siediti a terra, entrambe le gambe a 90°, schiena dritta.</div></div><p class="ex-tip">Lascia che la gravità faccia il lavoro. Ogni espirazione: vai più in profondità.</p><div class="ex-cue"><div class="cue-dot"></div><span>Schiena dritta — non curvare</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Se senti bruciore: sei nel punto giusto. Dolore acuto: esci.</span></div></div></div></div>
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('M2')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="10" r="5" fill="#3a3a3a" stroke="#555"/><line x1="30" y1="15" x2="30" y2="35" stroke="#3a3a3a" stroke-width="7" stroke-linecap="round"/><line x1="30" y1="35" x2="10" y2="45" stroke="#2a2a2a" stroke-width="6" stroke-linecap="round"/><line x1="30" y1="35" x2="50" y2="55" stroke="#2a2a2a" stroke-width="6" stroke-linecap="round"/><line x1="10" y1="45" x2="8" y2="58" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="22" y1="20" x2="8" y2="28" stroke="#555" stroke-width="3" stroke-linecap="round"/><line x1="8" y1="28" x2="4" y2="22" stroke="#555" stroke-width="3" stroke-linecap="round"/></svg></div><div class="ex-meta"><div class="ex-name">World's Greatest Stretch</div><div class="ex-chips"><span class="ex-chip">2 serie</span><span class="ex-chip">5/lato</span></div></div><div class="ex-toggle" id="tog-M2">›</div></div><div class="ex-detail" id="det-M2"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="140" width="180" height="3" rx="1" fill="#222"/><circle cx="60" cy="48" r="10" fill="#3a3a3a" stroke="#555"/><line x1="60" y1="58" x2="80" y2="88" stroke="#3a3a3a" stroke-width="10" stroke-linecap="round"/><line x1="80" y1="88" x2="40" y2="138" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><line x1="80" y1="88" x2="150" y2="108" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><line x1="150" y1="108" x2="158" y2="138" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><line x1="56" y1="64" x2="30" y2="80" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="30" y1="80" x2="20" y2="65" stroke="#555" stroke-width="5" stroke-linecap="round"/><path d="M20 65 Q10 50 25 40 Q40 30 45 50" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">WORLD'S GREATEST STRETCH</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Bodyweight</div><div class="ex-weight-note">Il miglior esercizio di mobilità per un calciatore. Mobilizza anca, schiena, torace in un movimento solo.</div></div><p class="ex-tip">Cerca video "world greatest stretch" — vale un minuto. Lento, respira in ogni posizione.</p><div class="ex-cue"><div class="cue-dot"></div><span>Non affrettare la sequenza</span></div><div class="ex-cue"><div class="cue-dot"></div><span>5 ripetizioni lente per lato</span></div></div></div></div>
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('M3')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="35" width="50" height="2" rx="1" fill="#222"/><circle cx="45" cy="22" r="6" fill="#3a3a3a" stroke="#555"/><line x1="45" y1="28" x2="40" y2="38" stroke="#3a3a3a" stroke-width="7" stroke-linecap="round"/><line x1="40" y1="38" x2="10" y2="40" stroke="#2a2a2a" stroke-width="7" stroke-linecap="round"/><line x1="10" y1="40" x2="8" y2="55" stroke="#2a2a2a" stroke-width="6" stroke-linecap="round"/><path d="M20 25 Q15 18 20 12 Q30 5 35 18" stroke="#555" stroke-width="2" fill="none" stroke-dasharray="3,2"/></svg></div><div class="ex-meta"><div class="ex-name">Cat-Cow + Thread the Needle</div><div class="ex-chips"><span class="ex-chip">2 serie</span><span class="ex-chip">10 + 8/lato</span></div></div><div class="ex-toggle" id="tog-M3">›</div></div><div class="ex-detail" id="det-M3"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><circle cx="60" cy="55" r="10" fill="#3a3a3a" stroke="#555"/><line x1="60" y1="65" x2="160" y2="68" stroke="#3a3a3a" stroke-width="12" stroke-linecap="round"/><path d="M60 68 Q110 45 160 68" stroke="#555" stroke-width="2" fill="none" stroke-dasharray="4,2"/><path d="M60 68 Q110 88 160 68" stroke="#c8382a" stroke-width="2" fill="none" stroke-dasharray="4,2"/><line x1="60" y1="68" x2="55" y2="110" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="80" y1="68" x2="80" y2="110" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="140" y1="68" x2="140" y2="110" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="160" y1="68" x2="162" y2="110" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><text x="110" y="150" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">CAT-COW — COLONNA</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Bodyweight</div><div class="ex-weight-note">In quadrupedia. Cat: arrotonda; Cow: incurva. Muovi vertebra per vertebra.</div></div><p class="ex-tip">Thread the needle: da quadrupedia, passa un braccio sotto il corpo ruotando il torace. Apri verso il soffitto.</p><div class="ex-cue"><div class="cue-dot"></div><span>Respiro come guida: inspira in cow, espira in cat</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Non forzare il range — solo quello naturale</span></div></div></div></div>
+        </div>
+      </div>
+
+      <!-- SCHEDA B -->
+      <div class="section" id="sec-scheda-b">
+        <div class="section-eyebrow">Giovedì — Forza B</div>
+        <div class="section-title">Lower<br>Funzionale</div>
+        <div class="section-lead">Le gambe del calciatore. No leg extension, no hack squat pesante. Glutei, hamstring, esplosività. Gambe funzionali, non gambe grosse.</div>
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Riscaldamento</h3><span>12 min</span></div>
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('B0')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="50" width="50" height="3" rx="1" fill="#222"/><circle cx="30" cy="18" r="6" fill="#3a3a3a" stroke="#555"/><rect x="22" y="24" width="16" height="18" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="26" y1="42" x2="20" y2="56" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="34" y1="42" x2="40" y2="56" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><path d="M20 50 L20 44 L40 44 L40 50" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/></svg></div><div class="ex-meta"><div class="ex-name">Glute Bridge Bodyweight + Hip 90/90</div><div class="ex-chips"><span class="ex-chip">2 serie</span><span class="ex-chip">20 rip + 60"/lato</span></div></div><div class="ex-toggle" id="tog-B0">›</div></div><div class="ex-detail" id="det-B0"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="140" width="180" height="3" rx="1" fill="#222"/><circle cx="55" cy="75" r="10" fill="#3a3a3a" stroke="#555"/><line x1="55" y1="85" x2="80" y2="90" stroke="#3a3a3a" stroke-width="10" stroke-linecap="round"/><line x1="80" y1="90" x2="140" y2="80" stroke="#3a3a3a" stroke-width="10" stroke-linecap="round"/><line x1="140" y1="80" x2="150" y2="120" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/><line x1="160" y1="80" x2="172" y2="120" stroke="#2a2a2a" stroke-width="12" stroke-linecap="round"/><line x1="45" y1="90" x2="42" y2="120" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><path d="M110 75 L110 60" stroke="#c8382a" stroke-width="2" stroke-dasharray="4,2"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">GLUTE BRIDGE</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Bodyweight</div><div class="ex-weight-note">Attivazione pura. Senti i glutei lavorare — non i lombari.</div></div><p class="ex-tip">Strizza i glutei in cima. Pausa 1 secondo. Se non senti i glutei, piedi più vicini ai glutei.</p><div class="ex-cue"><div class="cue-dot"></div><span>Mento al petto — non guardare il soffitto</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Non iperestendere la lombare in cima</span></div></div></div></div>
+        </div>
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Blocco principale</h3><span>35 min</span></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('B1')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="52" width="50" height="3" rx="1" fill="#222"/><circle cx="42" cy="22" r="6" fill="#3a3a3a" stroke="#555"/><line x1="42" y1="28" x2="36" y2="45" stroke="#3a3a3a" stroke-width="8" stroke-linecap="round"/><line x1="36" y1="45" x2="30" y2="58" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="36" y1="45" x2="45" y2="58" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><rect x="18" y="40" width="28" height="5" rx="2" fill="#555"/><rect x="12" y="35" width="8" height="14" rx="2" fill="#c8382a"/><rect x="40" y="35" width="8" height="14" rx="2" fill="#c8382a"/></svg></div><div class="ex-meta"><div class="ex-name">Romanian Deadlift</div><div class="ex-chips"><span class="ex-chip"><strong>4</strong> serie</span><span class="ex-chip"><strong>8–10</strong> rip</span><span class="ex-chip">75" riposo</span></div></div><div class="ex-toggle" id="tog-B1">›</div></div><div class="ex-detail" id="det-B1"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="140" width="180" height="3" rx="1" fill="#222"/><circle cx="140" cy="38" r="12" fill="#3a3a3a" stroke="#555"/><line x1="140" y1="50" x2="128" y2="78" stroke="#3a3a3a" stroke-width="14" stroke-linecap="round"/><line x1="128" y1="78" x2="124" y2="138" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><line x1="128" y1="78" x2="145" y2="138" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><rect x="62" y="82" width="68" height="7" rx="3" fill="#666" stroke="#888"/><rect x="52" y="76" width="14" height="18" rx="3" fill="#c8382a" stroke="#e04030"/><rect x="126" y="76" width="14" height="18" rx="3" fill="#c8382a" stroke="#e04030"/><path d="M128 75 L115 55" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">ROMANIAN DEADLIFT</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">40–60 kg</div><div class="ex-weight-note">O manubri 2x20–25kg. Inizia leggero — la forma è tutto. La schiena DEVE restare dritta.</div></div><p class="ex-tip">Piedi larghezza spalle, bilanciere vicino alle gambe. Spingi il sedere indietro (non abbassarti) fino a sentire l'hamstring teso.</p><div class="ex-cue"><div class="cue-dot"></div><span>Schiena neutra — non curvare mai</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Bar vicino alle gambe per tutto il ROM</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Fermati quando senti tensione, non dolore</span></div></div></div></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('B2')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="52" width="50" height="3" rx="1" fill="#222"/><rect x="32" y="38" width="20" height="7" rx="2" fill="#2a2a2a" stroke="#444"/><rect x="36" y="45" width="4" height="8" rx="1" fill="#2a2a2a"/><rect x="44" y="45" width="4" height="8" rx="1" fill="#2a2a2a"/><circle cx="22" cy="20" r="6" fill="#3a3a3a" stroke="#555"/><rect x="14" y="26" width="16" height="18" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="18" y1="44" x2="12" y2="58" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="26" y1="44" x2="40" y2="40" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/></svg></div><div class="ex-meta"><div class="ex-name">Bulgarian Split Squat</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>8/lato</strong></span><span class="ex-chip">75" riposo</span></div></div><div class="ex-toggle" id="tog-B2">›</div></div><div class="ex-detail" id="det-B2"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="140" width="180" height="3" rx="1" fill="#222"/><rect x="130" y="100" width="60" height="12" rx="3" fill="#2a2a2a" stroke="#444"/><rect x="138" y="112" width="8" height="18" rx="2" fill="#2a2a2a"/><rect x="174" y="112" width="8" height="18" rx="2" fill="#2a2a2a"/><circle cx="88" cy="32" r="12" fill="#3a3a3a" stroke="#555"/><rect x="74" y="44" width="28" height="36" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="78" y1="80" x2="60" y2="138" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><line x1="100" y1="80" x2="148" y2="102" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><rect x="56" y="62" width="12" height="24" rx="3" fill="#c8382a" stroke="#e04030"/><rect x="120" y="62" width="12" height="24" rx="3" fill="#c8382a" stroke="#e04030"/><text x="100" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">BULGARIAN SPLIT SQUAT</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">10–18 kg/manubrio</div><div class="ex-weight-note">L'esercizio più difficile del piano. Inizia leggero (10kg). La forza arriverà — la forma prima di tutto.</div></div><p class="ex-tip">Piede posteriore su panca, piede anteriore avanti. Scendi verticalmente — ginocchio segue le dita del piede.</p><div class="ex-cue"><div class="cue-dot"></div><span>Busto leggermente inclinato in avanti</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Spingiti su col tallone anteriore</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Non lasciare che il ginocchio crolli verso l'interno</span></div></div></div></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('B3')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="52" width="25" height="8" rx="3" fill="#2a2a2a" stroke="#444"/><circle cx="18" cy="38" r="6" fill="#3a3a3a" stroke="#555"/><line x1="18" y1="44" x2="28" y2="50" stroke="#3a3a3a" stroke-width="8" stroke-linecap="round"/><line x1="28" y1="50" x2="50" y2="45" stroke="#3a3a3a" stroke-width="8" stroke-linecap="round"/><line x1="50" y1="45" x2="54" y2="58" stroke="#2a2a2a" stroke-width="7" stroke-linecap="round"/><rect x="26" y="38" width="22" height="5" rx="2" fill="#555"/><rect x="20" y="33" width="8" height="12" rx="2" fill="#c8382a"/><rect x="44" y="33" width="8" height="12" rx="2" fill="#c8382a"/><path d="M38 38 L38 28" stroke="#c8382a" stroke-width="1.5" stroke-dasharray="3,2"/></svg></div><div class="ex-meta"><div class="ex-name">Hip Thrust</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>10–12</strong> rip</span><span class="ex-chip">60" riposo</span></div></div><div class="ex-toggle" id="tog-B3">›</div></div><div class="ex-detail" id="det-B3"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="140" width="180" height="3" rx="1" fill="#222"/><rect x="28" y="80" width="60" height="14" rx="4" fill="#2a2a2a" stroke="#444"/><circle cx="52" cy="68" r="12" fill="#3a3a3a" stroke="#555"/><line x1="52" y1="80" x2="78" y2="88" stroke="#3a3a3a" stroke-width="12" stroke-linecap="round"/><line x1="78" y1="88" x2="148" y2="82" stroke="#3a3a3a" stroke-width="12" stroke-linecap="round"/><line x1="148" y1="82" x2="158" y2="138" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><line x1="168" y1="82" x2="178" y2="138" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><rect x="88" y="76" width="68" height="8" rx="3" fill="#666" stroke="#888"/><rect x="78" y="70" width="14" height="18" rx="3" fill="#c8382a" stroke="#e04030"/><rect x="152" y="70" width="14" height="18" rx="3" fill="#c8382a" stroke="#e04030"/><path d="M120 76 L120 58" stroke="#c8382a" stroke-width="2" stroke-dasharray="4,2"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">HIP THRUST</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">40–70 kg</div><div class="ex-weight-note">Spalle sulla panca, bilanciere sui fianchi (con pad). Costruisce la potenza del tiro.</div></div><p class="ex-tip">Mento al petto, non guardare il soffitto. Spingi fino a che fianchi-busto-gambe sono in linea. Strizza i glutei in alto.</p><div class="ex-cue"><div class="cue-dot"></div><span>Piedi piatti, all'altezza delle ginocchia piegate</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Non iperestendere la schiena lombare</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Pausa di 1 secondo in cima — strizza i glutei</span></div></div></div></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('B4')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="52" width="50" height="3" rx="1" fill="#222"/><rect x="8" y="38" width="22" height="8" rx="3" fill="#333" stroke="#555"/><circle cx="42" cy="22" r="6" fill="#3a3a3a" stroke="#555"/><line x1="42" y1="28" x2="38" y2="42" stroke="#3a3a3a" stroke-width="7" stroke-linecap="round"/><line x1="38" y1="42" x2="28" y2="55" stroke="#2a2a2a" stroke-width="7" stroke-linecap="round"/><line x1="38" y1="42" x2="44" y2="55" stroke="#2a2a2a" stroke-width="7" stroke-linecap="round"/><line x1="36" y1="32" x2="24" y2="38" stroke="#555" stroke-width="3" stroke-linecap="round"/><path d="M38 42 Q32 46 28 52" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/></svg></div><div class="ex-meta"><div class="ex-name">Nordic Curl</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>6–8</strong> rip</span><span class="ex-chip">60" riposo</span></div></div><div class="ex-toggle" id="tog-B4">›</div></div><div class="ex-detail" id="det-B4"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="140" width="180" height="3" rx="1" fill="#222"/><rect x="55" y="122" width="44" height="16" rx="4" fill="#333" stroke="#555"/><circle cx="128" cy="35" r="12" fill="#3a3a3a" stroke="#555"/><line x1="128" y1="47" x2="115" y2="88" stroke="#3a3a3a" stroke-width="14" stroke-linecap="round"/><line x1="115" y1="88" x2="80" y2="130" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><line x1="115" y1="88" x2="102" y2="130" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/><line x1="118" y1="62" x2="88" y2="80" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="112" y1="68" x2="78" y2="60" stroke="#555" stroke-width="5" stroke-linecap="round"/><path d="M115 88 Q100 105 88 125" stroke="#c8382a" stroke-width="2" fill="none" stroke-dasharray="4,2"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">NORDIC CURL</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Bodyweight</div><div class="ex-weight-note">Molto difficile. Inizia assistito con banda elastica. La discesa lenta è l'obiettivo — risali con le mani se necessario.</div></div><p class="ex-tip">Fai tenere le caviglie da un partner o bloccale sotto un macchinario. Abbassati il più lentamente possibile.</p><div class="ex-cue"><div class="cue-dot"></div><span>Corpo rigido come un'asse</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Rallenta la discesa il più possibile</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Previene lo strappo agli hamstring tipico dei calciatori</span></div></div></div></div>
+        </div>
+      </div>
+
+      <!-- SCHEDA C -->
+      <div class="section" id="sec-scheda-c">
+        <div class="section-eyebrow">Venerdì — Forza C</div>
+        <div class="section-title">Upper Pull</div>
+        <div class="section-lead">Schiena e bicipiti. La schiena larga crea il V-shape lean. Costruirla bene risolve anche i dolori posturali da scrivania.</div>
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Blocco principale</h3><span>40 min</span></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('C1')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="5" width="50" height="5" rx="2" fill="#555"/><rect x="0" y="2" width="8" height="12" rx="2" fill="#444"/><rect x="52" y="2" width="8" height="12" rx="2" fill="#444"/><circle cx="30" cy="22" r="6" fill="#3a3a3a" stroke="#555"/><rect x="22" y="28" width="16" height="18" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="22" y1="32" x2="10" y2="10" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="38" y1="32" x2="50" y2="10" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="46" x2="20" y2="58" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/><line x1="36" y1="46" x2="40" y2="58" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/></svg></div><div class="ex-meta"><div class="ex-name">Trazioni alla Sbarra</div><div class="ex-chips"><span class="ex-chip"><strong>4</strong> serie</span><span class="ex-chip"><strong>max rip</strong></span><span class="ex-chip">90" riposo</span></div></div><div class="ex-toggle" id="tog-C1">›</div></div><div class="ex-detail" id="det-C1"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="38" y="25" width="144" height="7" rx="3" fill="#555" stroke="#777"/><rect x="30" y="18" width="12" height="22" rx="3" fill="#444"/><rect x="178" y="18" width="12" height="22" rx="3" fill="#444"/><circle cx="110" cy="50" r="12" fill="#3a3a3a" stroke="#555"/><rect x="96" y="62" width="28" height="36" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="96" y1="68" x2="72" y2="30" stroke="#555" stroke-width="6" stroke-linecap="round"/><line x1="124" y1="68" x2="148" y2="30" stroke="#555" stroke-width="6" stroke-linecap="round"/><line x1="100" y1="98" x2="92" y2="140" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><line x1="120" y1="98" x2="128" y2="140" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><path d="M72 42 L90 62" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><path d="M148 42 L130 62" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">TRAZIONI SBARRA</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Carico</div><div class="ex-weight-val">Peso corporeo</div><div class="ex-weight-note">Se non arrivi a 6 rip: usa lat machine a 60–70kg. Lavora verso le trazioni libere — obiettivo delle 12 settimane.</div></div><p class="ex-tip">Presa larga, gomiti verso il basso e indietro. Porta il petto alla sbarra, non il mento.</p><div class="ex-cue"><div class="cue-dot"></div><span>Scapole abbassate prima di iniziare il pull</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Gambe incrociate e stabili</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Non dondolare — movimento controllato</span></div></div></div></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('C2')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="18" y="28" width="28" height="7" rx="2" fill="#2a2a2a" stroke="#444"/><rect x="22" y="35" width="4" height="10" rx="1" fill="#2a2a2a"/><rect x="38" y="35" width="4" height="10" rx="1" fill="#2a2a2a"/><circle cx="22" cy="18" r="6" fill="#3a3a3a" stroke="#555"/><line x1="22" y1="24" x2="28" y2="32" stroke="#3a3a3a" stroke-width="6" stroke-linecap="round"/><line x1="22" y1="24" x2="15" y2="32" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="38" y1="32" x2="44" y2="45" stroke="#555" stroke-width="4" stroke-linecap="round"/><rect x="42" y="43" width="8" height="12" rx="2" fill="#c8382a"/><line x1="22" y1="35" x2="18" y2="52" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/></svg></div><div class="ex-meta"><div class="ex-name">Rematore Manubrio (1 braccio)</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>10–12/lato</strong></span><span class="ex-chip">60" riposo</span></div></div><div class="ex-toggle" id="tog-C2">›</div></div><div class="ex-detail" id="det-C2"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="138" width="180" height="3" rx="1" fill="#222"/><rect x="55" y="76" width="74" height="12" rx="3" fill="#2a2a2a" stroke="#444"/><rect x="62" y="88" width="8" height="22" rx="2" fill="#2a2a2a"/><rect x="114" y="88" width="8" height="22" rx="2" fill="#2a2a2a"/><circle cx="82" cy="42" r="12" fill="#3a3a3a" stroke="#555"/><line x1="82" y1="54" x2="96" y2="78" stroke="#3a3a3a" stroke-width="12" stroke-linecap="round"/><line x1="78" y1="66" x2="68" y2="76" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="112" y1="68" x2="138" y2="88" stroke="#555" stroke-width="5" stroke-linecap="round"/><rect x="136" y="86" width="14" height="22" rx="3" fill="#c8382a" stroke="#e04030"/><path d="M142 86 L132 65" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><line x1="78" y1="78" x2="72" y2="138" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><line x1="112" y1="78" x2="148" y2="138" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">REMATORE MANUBRIO</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">20–28 kg/manubrio</div><div class="ex-weight-note">Manubrio pesante ma controllato. Il gomito guida il movimento — non la mano.</div></div><p class="ex-tip">Mano e ginocchio dello stesso lato sulla panca. Tira il gomito verso il soffitto, non verso il corpo.</p><div class="ex-cue"><div class="cue-dot"></div><span>Non ruotare il busto eccessivamente</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Pausa in cima — senti la contrazione del dorsale</span></div></div></div></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('C3')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="40" y="5" width="12" height="50" rx="3" fill="#1a1a1a" stroke="#333"/><circle cx="46" cy="18" r="5" fill="#444"/><line x1="40" y1="18" x2="28" y2="28" stroke="#888" stroke-width="2"/><line x1="40" y1="18" x2="28" y2="22" stroke="#888" stroke-width="2"/><circle cx="22" cy="22" r="6" fill="#3a3a3a" stroke="#555"/><line x1="22" y1="28" x2="28" y2="35" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="28" y1="35" x2="28" y2="22" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="16" y1="28" x2="10" y2="35" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="22" y1="40" x2="18" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/><line x1="30" y1="40" x2="33" y2="55" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/></svg></div><div class="ex-meta"><div class="ex-name">Face Pull Cavo</div><div class="ex-chips"><span class="ex-chip"><strong>3</strong> serie</span><span class="ex-chip"><strong>15</strong> rip</span><span class="ex-chip">45" riposo</span></div></div><div class="ex-toggle" id="tog-C3">›</div></div><div class="ex-detail" id="det-C3"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="165" y="18" width="22" height="110" rx="4" fill="#1a1a1a" stroke="#333"/><circle cx="176" cy="48" r="7" fill="#444" stroke="#555"/><line x1="165" y1="48" x2="130" y2="62" stroke="#888" stroke-width="2"/><line x1="165" y1="48" x2="130" y2="56" stroke="#888" stroke-width="2"/><circle cx="90" cy="48" r="12" fill="#3a3a3a" stroke="#555"/><rect x="76" y="60" width="28" height="40" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="90" y1="68" x2="115" y2="58" stroke="#555" stroke-width="5" stroke-linecap="round"/><line x1="90" y1="68" x2="118" y2="66" stroke="#555" stroke-width="5" stroke-linecap="round"/><path d="M118 60 L100 58" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><line x1="80" y1="100" x2="74" y2="138" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><line x1="100" y1="100" x2="106" y2="138" stroke="#2a2a2a" stroke-width="8" stroke-linecap="round"/><text x="100" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">FACE PULL CAVO</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">12–18 kg</div><div class="ex-weight-note">Fondamentale per la salute della spalla. Non saltare mai questo esercizio.</div></div><p class="ex-tip">Cavo al livello degli occhi, corda doppia. Tira verso il viso, gomiti alti. Alla fine: mani separate, pollici verso l'orecchio.</p><div class="ex-cue"><div class="cue-dot"></div><span>Non portare il peso con le braccia — usa la schiena</span></div><div class="ex-cue"><div class="cue-dot"></div><span>Lento nel ritorno</span></div></div></div></div>
+
+          <div class="ex-row"><div class="ex-top" onclick="toggleEx('C4')"><div class="ex-illus-thumb"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="52" width="50" height="3" rx="1" fill="#222"/><circle cx="30" cy="15" r="6" fill="#3a3a3a" stroke="#555"/><rect x="22" y="21" width="16" height="22" rx="3" fill="#3a3a3a" stroke="#555"/><line x1="22" y1="26" x2="10" y2="32" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="10" y1="32" x2="6" y2="20" stroke="#555" stroke-width="4" stroke-linecap="round"/><rect x="2" y="12" width="7" height="12" rx="2" fill="#c8382a"/><line x1="38" y1="26" x2="50" y2="32" stroke="#555" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="32" x2="54" y2="48" stroke="#555" stroke-width="4" stroke-linecap="round"/><rect x="51" y="46" width="7" height="12" rx="2" fill="#c8382a"/><line x1="24" y1="43" x2="20" y2="58" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/><line x1="36" y1="43" x2="40" y2="58" stroke="#2a2a2a" stroke-width="4" stroke-linecap="round"/></svg></div><div class="ex-meta"><div class="ex-name">Curl Bilanciere + Hammer Curl</div><div class="ex-chips"><span class="ex-chip"><strong>3+2</strong> serie</span><span class="ex-chip"><strong>10–12</strong> rip</span><span class="ex-chip">60" riposo</span></div></div><div class="ex-toggle" id="tog-C4">›</div></div><div class="ex-detail" id="det-C4"><div class="ex-illus-big"><svg viewBox="0 0 220 160" fill="none"><rect x="20" y="138" width="180" height="3" rx="1" fill="#222"/><circle cx="110" cy="28" r="12" fill="#3a3a3a" stroke="#555"/><rect x="96" y="40" width="28" height="36" rx="4" fill="#3a3a3a" stroke="#555"/><line x1="96" y1="100" x2="88" y2="138" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><line x1="124" y1="100" x2="132" y2="138" stroke="#2a2a2a" stroke-width="10" stroke-linecap="round"/><line x1="96" y1="52" x2="72" y2="64" stroke="#555" stroke-width="6" stroke-linecap="round"/><line x1="72" y1="64" x2="65" y2="44" stroke="#555" stroke-width="6" stroke-linecap="round"/><rect x="58" y="34" width="14" height="20" rx="3" fill="#c8382a" stroke="#e04030"/><line x1="124" y1="52" x2="148" y2="64" stroke="#555" stroke-width="6" stroke-linecap="round"/><line x1="148" y1="64" x2="154" y2="88" stroke="#555" stroke-width="6" stroke-linecap="round"/><rect x="148" y="86" width="14" height="20" rx="3" fill="#c8382a" stroke="#e04030"/><path d="M152 86 L144 62" stroke="#c8382a" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><text x="110" y="155" text-anchor="middle" fill="#444" font-size="10" font-family="sans-serif">CURL BICIPITI</text></svg></div><div class="ex-detail-body"><div class="ex-weight-box"><div class="ex-weight-label">⚖️ Peso orientativo</div><div class="ex-weight-val">Bilanciere 25–35 kg · Manubri 12–16 kg/lato</div><div class="ex-weight-note">Curl: 3 serie. Hammer (presa neutra): 2 serie. Il dondolio annulla tutto il lavoro — gomiti fissi.</div></div><p class="ex-tip">Gomiti fissi ai fianchi. Porta fino alle spalle. Scendi lentamente (3 secondi). Strizza il bicipite in cima.</p><div class="ex-cue"><div class="cue-dot"></div><span>Non muovere i gomiti</span></div><div class="ex-cue"><div class="cue-dot"></div><span>La discesa è metà del lavoro</span></div></div></div></div>
+        </div>
+      </div>
+
+      <!-- CALCIO -->
+      <div class="section" id="sec-calcio">
+        <div class="section-eyebrow">Domenica — Calcio</div>
+        <div class="section-title">Il tuo<br>cardio naturale</div>
+        <div class="section-lead">Il torneo domenicale è la tua sessione HIIT settimanale. Non serve aggiungere altro. Il calcio fa già tutto: esplosività, resistenza, cambio di direzione.</div>
+        <div class="alert alert-ok"><h4>✓ Protocollo match day</h4><p>Warm-up 10 min prima: jogging leggero + mobilità dinamica. Acqua ogni 15 min di gioco. Stretching 10 min dopo a mente fredda. Proteina entro 45 min dalla fine.</p></div>
+        <div class="meal-block"><div class="meal-head"><span class="meal-name">☀️ Pranzo pre-gara</span><span class="meal-tag">3h prima</span></div><div class="food-row"><span>Pasta o riso</span><span class="food-qty">80g</span></div><div class="food-row"><span>Pollo o tonno</span><span class="food-qty">120g</span></div><div class="food-row"><span>Verdura leggera + olio EVO</span><span class="food-qty">8g olio</span></div></div>
+        <div class="meal-block"><div class="meal-head"><span class="meal-name">🍌 Spuntino</span><span class="meal-tag">60 min prima</span></div><div class="food-row"><span>Banana o frutta della dieta</span><span class="food-qty">150g</span></div></div>
+        <div class="alert alert-warn"><h4>⚠ Sabato sera</h4><p>La cena è libera — goditi quello che vuoi. Ma attenzione all'alcol: impatta le prestazioni domenicali in modo misurabile. Se bevi: massimo 1–2 bicchieri, poi acqua e riposo.</p></div>
+      </div>
+
+      <!-- ALIMENTAZIONE -->
+      <div class="section" id="sec-alimentazione">
+        <div class="section-eyebrow">Alimentazione</div>
+        <div class="section-title">Il piano<br>nutrizionale</div>
+        <div class="section-lead">La dieta della Dr.ssa Sangiorgio è buona come base. Queste ottimizzazioni la completano per il lavoro atletico senza stravolgerla.</div>
+
+        <div class="numbers-row">
+          <div class="number-box"><div class="n">1800</div><div class="l">Kcal base</div></div>
+          <div class="number-box"><div class="n">2000</div><div class="l">Kcal giorni WO</div></div>
+          <div class="number-box"><div class="n">2,5L</div><div class="l">Acqua giorni WO</div></div>
+          <div class="number-box"><div class="n red">~120g</div><div class="l">Proteine/die</div></div>
+        </div>
+
+        <div class="alert alert-ok"><h4>✓ Cosa funziona già</h4><p>Proteine presenti e variate (tonno, pollo, uova, salmone). Calorie bilanciate. Varietà alimentare alta. Non stravolgere — ottimizza.</p></div>
+        <div class="alert alert-warn"><h4>⚠ Giorni di palestra</h4><p>Aggiungi 1 fonte proteica a colazione (2 uova sode o 30g formaggio magro). Porta le kcal a ~2000. Entro 45 min dal workout: frutta + proteina.</p></div>
+
+        <div class="sub-title">Integratori essenziali</div>
+        <div class="block-title">Solo quelli utili</div>
+
+        <div class="workout-section">
+          <div class="workout-section-header"><h3>Stack consigliato</h3><span>Budget minimo, impatto massimo</span></div>
+          <div style="padding:0">
+            <div class="food-row"><span><strong>Creatina monoidrata</strong> — il più studiato in assoluto</span><span class="food-qty">5g/die · ~€15/mese</span></div>
+            <div class="food-row"><span><strong>Vitamina D3</strong> — energia e forza muscolare</span><span class="food-qty">2000 UI mattina</span></div>
+            <div class="food-row"><span><strong>Magnesio glicinato</strong> — recovery notturno, meno crampi</span><span class="food-qty">300mg sera</span></div>
+            <div class="food-row"><span><strong>Whey protein</strong> — solo se non raggiungi le proteine col cibo</span><span class="food-qty">opzionale</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERCORSO -->
+      <div class="section" id="sec-percorso">
+        <div class="section-eyebrow">Roadmap</div>
+        <div class="section-title">12 settimane<br>al risultato</div>
+        <div class="section-lead">Tre fasi progressive. La costanza batte sempre l'intensità.</div>
+
+        <div class="timeline">
+          <div class="tl-item current">
+            <div class="tl-dot"></div>
+            <div class="tl-phase">📍 Settimane 1–4 — Ora</div>
+            <div class="tl-title">Foundation</div>
+            <div class="tl-body">Impara i movimenti con forma corretta. Carichi leggeri, tecnica perfetta. Inizia la mobilità del mercoledì — risolve già il 50% dei dolori. Obiettivo: 3 sessioni settimanali consecutive per 4 settimane senza saltare.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-phase">Settimane 5–8</div>
+            <div class="tl-title">Intensification</div>
+            <div class="tl-body">+1 serie per esercizio principale. Pesi +10%. Introduci supersets. Risultati visibili: addome più piatto, spalle definite.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-phase">Settimane 9–12</div>
+            <div class="tl-title">Definition</div>
+            <div class="tl-body">Recuperi brevi (45"). Circuiti finali ad alta intensità. Performance calcistica visibilmente migliorata: più fiato, gambe fresche, più reattività.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-phase">Settimana 13+</div>
+            <div class="tl-title">Il nuovo normale</div>
+            <div class="tl-body">Hai un sistema che ti appartiene. Si aggiusta, non si reinventa.</div>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="sub-title">Regole mentali</div>
+        <div class="alert alert-ok"><h4>La regola del "basta presentarsi"</h4><p>Nei giorni senza voglia: vai con l'obiettivo di fare solo il riscaldamento. Il 95% delle volte finirai l'allenamento. Il problema non è la palestra — è il divano prima.</p></div>
+        <div class="alert alert-ok"><h4>La regola del 2%</h4><p>Ogni settimana migliora del 2% su una sola cosa. Un peso, un rep, un secondo di plank. Il 2% composto fa miracoli in 12 settimane.</p></div>
+        <div class="alert alert-warn"><h4>Non fare mai queste cose</h4><p>Non cambiare scheda ogni 2 settimane. Non aggiungere esercizi random da Instagram. Non saltare la mobilità del mercoledì. Non pesarti ogni giorno.</p></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// PASSWORD
+function unlock() {
+  const input = document.getElementById('passInput');
+  const err = document.getElementById('lockError');
+  if (input.value.toLowerCase() === 'atletico2026') {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } else {
+    input.classList.add('error');
+    err.style.display = 'block';
+    setTimeout(() => input.classList.remove('error'), 400);
+    input.value = '';
+  }
+}
+
+// NAVIGATION
+const breadcrumbs = {
+  'analisi': 'Analisi & Obiettivi',
+  'settimana': 'Struttura Settimanale',
+  'scheda-a': 'Martedì — Upper Push',
+  'mobilita': 'Mercoledì — Mobilità',
+  'scheda-b': 'Giovedì — Lower',
+  'scheda-c': 'Venerdì — Upper Pull',
+  'calcio': 'Domenica — Calcio',
+  'alimentazione': 'Alimentazione',
+  'percorso': 'Percorso 12 Settimane'
+};
+
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('breadcrumb-current').textContent = breadcrumbs[id] || id;
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' });
+  closeMenu();
+}
+
+// EXERCISE TOGGLE
+function toggleEx(id) {
+  const det = document.getElementById('det-' + id);
+  const tog = document.getElementById('tog-' + id);
+  const isOpen = det && det.classList.contains('open');
+  document.querySelectorAll('.ex-detail').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.ex-toggle').forEach(t => { t.classList.remove('open'); t.textContent = '›'; });
+  if (!isOpen && det) {
+    det.classList.add('open');
+    if (tog) { tog.classList.add('open'); tog.textContent = '⌄'; }
+  }
+}
+
+// MOBILE MENU
+function toggleMenu() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+function closeMenu() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
